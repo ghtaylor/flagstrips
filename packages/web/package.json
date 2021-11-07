@@ -1,0 +1,38 @@
+{
+    "name": "@flagstrips/web",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@chakra-ui/icons": "^1.0.17",
+        "@chakra-ui/react": "^1.6.8",
+        "@emotion/react": "^11",
+        "@emotion/styled": "^11",
+        "axios": "^0.22.0",
+        "axios-auth-refresh": "^3.2.1",
+        "formik": "^2.2.9",
+        "framer-motion": "^4",
+        "immer": "^9.0.6",
+        "jsonwebtoken": "^8.5.1",
+        "next": "^11.1.2",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "react-icons": "^4.3.1",
+        "react-query": "^3.31.0",
+        "swr": "^1.0.1",
+        "validator": "^13.6.0",
+        "zustand": "^3.5.12"
+    },
+    "devDependencies": {
+        "@types/node": "^16.10.2",
+        "@types/react": "^17.0.27",
+        "@types/validator": "^13.6.3",
+        "typescript": "^4.4.3"
+    }
+}

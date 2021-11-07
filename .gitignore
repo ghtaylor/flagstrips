@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+/.pnp
+.pnp.js
+*.lock
+
+# misc
+.DS_Store
+*_priv.pem
+backend/database/data
+.next
+packages/client/web_old
+
+# secrets
+.env
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
