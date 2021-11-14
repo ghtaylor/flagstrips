@@ -13,6 +13,7 @@ import createDBConnection from "./providers/database";
 const { PORT } = process.env;
 
 if (!PORT) {
+    console.error("Exiting app due to missing PORT environment variable.");
     process.exit(1);
 }
 

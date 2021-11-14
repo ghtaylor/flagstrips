@@ -3,14 +3,17 @@ import FlagEntity from ".";
 
 @Entity({ name: "flag_padding" })
 export default class FlagPaddingEntity extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn()
     id: string;
 
+    @PrimaryGeneratedColumn()
+    uid: string;
+
     @Column()
-    flagId: string;
+    flagUid: string;
 
     @OneToOne(() => FlagEntity, (flag) => flag.padding)
-    @JoinColumn({ name: "flag_id", referencedColumnName: "id" })
+    @JoinColumn({ name: "flag_uid", referencedColumnName: "uid" })
     flag: FlagEntity;
 
     @Column()

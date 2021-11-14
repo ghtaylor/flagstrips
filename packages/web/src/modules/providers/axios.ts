@@ -47,3 +47,8 @@ export const getFlags = async (): Promise<Flag[]> => {
     const { data }: AxiosResponse<ApiResponseCollection<Flag>> = await apiAxios.get("/me/flags");
     return data.results;
 };
+
+export const getFlagByUid = async (uid: string): Promise<Flag> => {
+    const { data }: AxiosResponse<Flag> = await apiAxios.get(`/me/flags/${uid}`);
+    return data;
+};

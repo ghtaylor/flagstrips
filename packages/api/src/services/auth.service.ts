@@ -26,7 +26,7 @@ export default class AuthService {
 
         if (await bcrypt.compare(userLogin.password, userWithPassword.password)) {
             //Authenticated.
-            const payload: AuthLoginJWTPayload = { userId: userWithPassword.id, role: userWithPassword.roleName };
+            const payload: AuthLoginJWTPayload = { userUid: userWithPassword.uid, role: userWithPassword.roleName };
             return { accessToken: getAccessToken(payload), refreshToken: getRefreshToken(payload) };
         } else {
             throw unsuccessfulLoginError("password");

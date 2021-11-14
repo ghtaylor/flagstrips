@@ -16,20 +16,24 @@ import StripTextEntity from "./StripText";
 
 @Entity({ name: "strip" })
 export default class StripEntity extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @PrimaryGeneratedColumn()
+    uid: string;
 
     @Column()
-    flagId: string;
+    flagUid: string;
 
-    @Column({ name: "user_account_id" })
-    userId: string;
+    @Column({ name: "user_account_uid" })
+    userUid: string;
 
     @ManyToOne(() => UserEntity, (user) => user.flags)
-    @JoinColumn({ name: "user_account_id", referencedColumnName: "id" })
+    @JoinColumn({ name: "user_account_uid", referencedColumnName: "uid" })
     user: UserEntity;
 
     @ManyToOne(() => FlagEntity, (flag) => flag.strips)
+    @JoinColumn({ name: "flag_uid", referencedColumnName: "uid" })
     flag: FlagEntity;
 
     @OneToOne(() => StripImageEntity, (stripImage) => stripImage.strip)

@@ -14,13 +14,13 @@ export default class StripController {
         req: Request,
         _res: Response,
         next: NextFunction,
-        id: string,
+        uid: string,
     ): Promise<Response | void> {
         try {
             console.log("applying");
             console.log("flag", req.flag);
 
-            const strip = await StripService.getStripById(id, req.authenticatedUser?.id, req.flag?.id);
+            const strip = await StripService.getStripByUid(uid, req.authenticatedUser?.uid, req.flag?.uid);
             if (strip) {
                 req.strip = strip;
             }
@@ -36,7 +36,7 @@ export default class StripController {
         next: NextFunction,
     ): Promise<Response | void> {
         try {
-            const strips = await StripService.getStrips(req.authenticatedUser?.id, req.flag?.id);
+            const strips = await StripService.getStrips(req.authenticatedUser?.uid, req.flag?.uid);
             if (strips.length > 0) {
                 return res.status(200).json({ results: strips });
             } else {
@@ -59,7 +59,7 @@ export default class StripController {
 
         if (StripPost.guard(body)) {
             try {
-                const strip = await StripService.createStrip(body, req.authenticatedUser.id, req.flag.id);
+                const strip = await StripService.createStrip(body, req.authenticatedUser.uid, req.flag.uid);
                 return res.status(201).json(strip);
             } catch (error) {
                 return next(error);
@@ -77,7 +77,7 @@ export default class StripController {
 
         if (StripPost.guard(body)) {
             try {
-                const strip = await StripService.updateStrip(body, req.strip.id);
+                const strip = await StripService.updateStrip(body, req.strip.uid);
                 return res.status(200).json(strip);
             } catch (error) {
                 return next(error);
@@ -92,7 +92,7 @@ export default class StripController {
         if (!req.strip) return next(forbiddenResourceAccessError("Strip"));
 
         try {
-            await StripService.deleteStrip(req.strip.id);
+            await StripService.deleteStrip(req.strip.uid);
             return res.status(204).send();
         } catch (error) {
             return next(error);

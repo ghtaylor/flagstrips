@@ -7,7 +7,7 @@ export const AuthAccessTokenResponse = t.Record({
 });
 
 export const AuthLoginJWTPayload = t.Record({
-    userId: t.String,
+    userUid: t.String,
     role: t.String,
 });
 

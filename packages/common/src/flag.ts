@@ -1,10 +1,9 @@
 import * as t from "runtypes";
 import { TimeStamped } from "./generic";
 import { Strip, StripPost } from "./strip";
-import { Uuid } from "./util";
 
 export const FlagBorder = t.Record({
-    id: t.Optional(Uuid),
+    uid: t.Optional(t.String),
     width: t.Number,
     color: t.String,
     topLeft: t.Number,
@@ -13,20 +12,20 @@ export const FlagBorder = t.Record({
     bottomRight: t.Number,
 });
 
-export const FlagBorderPost = FlagBorder.omit("id").asPartial();
+export const FlagBorderPost = FlagBorder.omit("uid").asPartial();
 
 export const FlagPadding = t.Record({
-    id: t.Optional(Uuid),
+    uid: t.Optional(t.String),
     top: t.Number,
     right: t.Number,
     bottom: t.Number,
     left: t.Number,
 });
 
-export const FlagPaddingPost = FlagPadding.omit("id").asPartial();
+export const FlagPaddingPost = FlagPadding.omit("uid").asPartial();
 
 export const Flag = TimeStamped.extend({
-    id: Uuid,
+    uid: t.String,
     title: t.String,
     border: FlagBorder,
     padding: FlagPadding,
@@ -34,7 +33,7 @@ export const Flag = TimeStamped.extend({
 });
 
 export const FlagPost = t.Intersect(
-    Flag.omit("id", "border", "padding", "strips").asPartial(),
+    Flag.omit("uid", "border", "padding", "strips").asPartial(),
     t
         .Record({
             border: FlagBorderPost,

@@ -3,8 +3,11 @@ import StripEntity from ".";
 
 @Entity({ name: "strip_text" })
 export default class StripTextEntity extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @PrimaryGeneratedColumn()
+    uid: string;
 
     @Column()
     value: string;
@@ -22,10 +25,10 @@ export default class StripTextEntity extends BaseEntity {
     fontSize: string;
 
     @Column()
-    stripId: string;
+    stripUid: string;
 
     @OneToOne(() => StripEntity, (strip) => strip.image)
-    @JoinColumn({ name: "strip_id", referencedColumnName: "id" })
+    @JoinColumn({ name: "strip_uid", referencedColumnName: "uid" })
     strip: StripEntity;
 
     @CreateDateColumn()

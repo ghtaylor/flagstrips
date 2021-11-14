@@ -3,14 +3,17 @@ import FlagEntity from ".";
 
 @Entity({ name: "flag_border" })
 export default class FlagBorderEntity extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @PrimaryGeneratedColumn()
+    uid: string;
 
     @Column()
-    flagId: string;
+    flagUid: string;
 
     @OneToOne(() => FlagEntity, (flag) => flag.border)
-    @JoinColumn({ name: "flag_id", referencedColumnName: "id" })
+    @JoinColumn({ name: "flag_uid", referencedColumnName: "uid" })
     flag: FlagEntity;
 
     @Column()

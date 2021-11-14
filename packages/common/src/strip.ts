@@ -1,9 +1,8 @@
 import * as t from "runtypes";
 import { TimeStamped } from "./generic";
-import { Uuid } from "./util";
 
 export const StripText = t.Record({
-    id: t.Optional(Uuid),
+    uid: t.Optional(t.String),
     value: t.String,
     color: t.String,
     fontFamily: t.String,
@@ -11,27 +10,27 @@ export const StripText = t.Record({
     fontSize: t.String,
 });
 
-export const StripTextPost = StripText.omit("id").asPartial();
+export const StripTextPost = StripText.omit("uid").asPartial();
 
 export const StripImageOption = t.Record({
-    id: Uuid,
+    uid: t.String,
     uri: t.String,
     name: t.String,
 });
 
 export const StripImage = t.Record({
-    id: t.Optional(Uuid),
+    uid: t.Optional(t.String),
     size: t.Number,
     imageOption: StripImageOption,
 });
 
 export const StripImagePost = t.Intersect(
-    StripImage.omit("id", "imageOption").asPartial(),
-    t.Record({ imageOptionId: Uuid }).asPartial(),
+    StripImage.omit("uid", "imageOption").asPartial(),
+    t.Record({ imageOptionuid: t.String }).asPartial(),
 );
 
 export const Strip = TimeStamped.extend({
-    id: Uuid,
+    uid: t.String,
     position: t.Number,
     backgroundColor: t.String,
     text: StripText,
@@ -39,7 +38,7 @@ export const Strip = TimeStamped.extend({
 });
 
 export const StripPost = t.Intersect(
-    Strip.omit("id", "text", "image").asPartial(),
+    Strip.omit("uid", "text", "image").asPartial(),
     t.Record({ text: StripTextPost, image: StripImagePost }).asPartial(),
 );
 

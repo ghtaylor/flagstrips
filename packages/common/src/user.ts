@@ -1,6 +1,5 @@
 import * as t from "runtypes";
 import { TimeStamped } from "./generic";
-import { Uuid } from "./util";
 
 export const UserRole = t.Record({
     name: t.String,
@@ -25,7 +24,7 @@ export const UserLogin = t.Union(UserLoginEmail, UserLoginUsername);
 export type UserLogin = t.Static<typeof UserLogin>;
 
 export const UserWithPassword = TimeStamped.extend({
-    id: Uuid,
+    uid: t.String,
     email: t.String,
     username: t.String,
     password: t.String,
@@ -40,6 +39,6 @@ export const User = UserWithPassword.omit("password");
 
 export type User = t.Static<typeof User>;
 
-export const UserPost = UserWithPassword.omit("id", "roleName");
+export const UserPost = UserWithPassword.omit("uid", "roleName", "created", "modified");
 
 export type UserPost = t.Static<typeof UserPost>;

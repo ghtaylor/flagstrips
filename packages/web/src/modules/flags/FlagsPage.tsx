@@ -19,7 +19,10 @@ const FlagPage: React.FC = () => {
                         my flags
                     </Heading>
                     <SimpleGrid columns={[1, 2, 4]} spacing={4}>
-                        {flags && flags.map((flag) => <FlagOverview flag={flag} key={flag.id} />)}
+                        {flags &&
+                            flags.map((flag) => (
+                                <FlagOverview flag={flag} key={flag.uid} editHref={(flag) => `/editor/${flag.uid}`} />
+                            ))}
                     </SimpleGrid>
                 </Container>
             </MainLayout>

@@ -9,10 +9,10 @@ export default class FlagController {
         req: Request,
         _res: Response,
         next: NextFunction,
-        id: string,
+        uid: string,
     ): Promise<Response | void> {
         try {
-            const flag = await FlagService.getFlagById(id, req.authenticatedUser?.id);
+            const flag = await FlagService.getFlagByUid(uid, req.authenticatedUser?.uid);
             if (flag) {
                 req.flag = flag;
             }
@@ -28,7 +28,7 @@ export default class FlagController {
         next: NextFunction,
     ): Promise<Response | void> {
         try {
-            const flags = await FlagService.getFlags(req.authenticatedUser?.id);
+            const flags = await FlagService.getFlags(req.authenticatedUser?.uid);
             if (flags.length > 0) {
                 return res.status(200).json({ results: flags });
             } else {
@@ -50,7 +50,7 @@ export default class FlagController {
 
         if (FlagPost.guard(body)) {
             try {
-                const flag = await FlagService.createFlag(body, req.authenticatedUser.id);
+                const flag = await FlagService.createFlag(body, req.authenticatedUser.uid);
                 return res.status(201).json(flag);
             } catch (error) {
                 return next(error);
@@ -69,7 +69,7 @@ export default class FlagController {
 
         if (FlagPost.guard(body)) {
             try {
-                const flag = await FlagService.updateFlag(body, req.flag.id);
+                const flag = await FlagService.updateFlag(body, req.flag.uid);
                 return res.status(200).json(flag);
             } catch (error) {
                 return next(error);
@@ -84,7 +84,7 @@ export default class FlagController {
         if (!req.flag) return next(forbiddenResourceAccessError("Flag"));
 
         try {
-            await FlagService.deleteFlag(req.flag.id);
+            await FlagService.deleteFlag(req.flag.uid);
             return res.status(204).send();
         } catch (error) {
             return next(error);

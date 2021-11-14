@@ -8,62 +8,62 @@ const relations = ["flag", "text", "image", "image.imageOption"];
 
 export const transformStripEntityToStrip = (stripEntity: StripEntity): Strip => {
     let strip = pick(stripEntity, getLeafPathsOfRecord(Strip));
-    strip = omit(strip, ["text.id", "image.id"]);
+    strip = omit(strip, ["id", "text.uid", "image.uid"]);
     return strip as Strip;
 };
 
 export default class StripService {
     static async getStrips(
-        userId: string | undefined = undefined,
-        flagId: string | undefined = undefined,
+        userUid: string | undefined = undefined,
+        flagUid: string | undefined = undefined,
     ): Promise<Strip[]> {
         const stripEntities = await StripEntity.find({
             relations,
-            where: { ...(userId && { userId }), ...(flagId && { flagId }) },
+            where: { ...(userUid && { userUid }), ...(flagUid && { flagUid }) },
         });
         const strips = stripEntities.map(transformStripEntityToStrip);
         return sortBy(strips, "position");
     }
 
-    static async getStripById(
-        id: string,
-        userId: string | undefined = undefined,
-        flagId: string | undefined = undefined,
+    static async getStripByUid(
+        uid: string,
+        userUid: string | undefined = undefined,
+        flagUid: string | undefined = undefined,
     ): Promise<Strip | undefined> {
-        const stripEntity = await StripEntity.findOne(id, {
+        const stripEntity = await StripEntity.findOne({
+            where: { uid, ...(userUid && { userUid }), ...(flagUid && { flagUid }) },
             relations,
-            where: { ...(userId && { userId }), ...(flagId && { flagId }) },
         });
 
         return stripEntity ? transformStripEntityToStrip(stripEntity) : undefined;
     }
 
-    static async createStrip(stripPost: StripPost, userId: string, flagId: string): Promise<Strip> {
+    static async createStrip(stripPost: StripPost, userUid: string, flagUid: string): Promise<Strip> {
         const { text, image, ...strip } = stripPost;
 
-        const { id } = await StripEntity.create({ ...strip, userId, flagId }).save();
+        const { uid } = await StripEntity.create({ ...strip, userUid, flagUid }).save();
 
-        if (text && !isEmpty(text)) await StripTextEntity.update({ stripId: id }, text);
-        if (image && !isEmpty(image)) await StripImageEntity.update({ stripId: id }, image);
+        if (text && !isEmpty(text)) await StripTextEntity.update({ stripUid: uid }, text);
+        if (image && !isEmpty(image)) await StripImageEntity.update({ stripUid: uid }, image);
 
-        const stripEntity = await StripEntity.findOneOrFail(id, { relations });
+        const stripEntity = await StripEntity.findOneOrFail({ where: { uid }, relations });
 
         return transformStripEntityToStrip(stripEntity);
     }
 
-    static async updateStrip(stripPost: StripPost, id: string): Promise<Strip> {
+    static async updateStrip(stripPost: StripPost, uid: string): Promise<Strip> {
         const { text, image, ...strip } = stripPost;
 
-        if (!isEmpty(strip)) await StripEntity.update({ id }, strip);
-        if (text && !isEmpty(text)) await StripTextEntity.update({ stripId: id }, text);
-        if (image && !isEmpty(image)) await StripImageEntity.update({ stripId: id }, image);
+        if (!isEmpty(strip)) await StripEntity.update({ uid }, strip);
+        if (text && !isEmpty(text)) await StripTextEntity.update({ stripUid: uid }, text);
+        if (image && !isEmpty(image)) await StripImageEntity.update({ stripUid: uid }, image);
 
-        const stripEntity = await StripEntity.findOneOrFail(id, { relations });
+        const stripEntity = await StripEntity.findOneOrFail({ where: { uid }, relations });
 
         return transformStripEntityToStrip(stripEntity);
     }
 
-    static async deleteStrip(id: string): Promise<void> {
-        await StripEntity.delete({ id });
+    static async deleteStrip(uid: string): Promise<void> {
+        await StripEntity.delete({ uid });
     }
 }

@@ -13,7 +13,7 @@ export default async (req: Request, _res: Response, next: NextFunction): Promise
 
     try {
         const payload = verifyAccessToken(accessToken);
-        const user = await UserService.getUserById(payload.userId);
+        const user = await UserService.getUserByUid(payload.userUid);
 
         if (!user) {
             return next(unauthorizedError());

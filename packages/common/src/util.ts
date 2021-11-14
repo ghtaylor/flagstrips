@@ -1,5 +1,3 @@
-import * as t from "runtypes";
-import isUUID from "validator/lib/isUUID";
 import { RuntypeBase } from "runtypes/lib/runtype";
 
 export const getLeafPathsOfRecord = (
@@ -31,6 +29,3 @@ export const getLeafPathsOfRecord = (
     }
     return paths;
 };
-
-export const Uuid = t.String.withConstraint((value) => isUUID(value) || `${value} is not a UUID.`);
-export type Uuid = t.Static<typeof Uuid>;

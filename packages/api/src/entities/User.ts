@@ -15,8 +15,11 @@ import UserRoleEntity from "./UserRole";
 
 @Entity({ name: "user_account" })
 export default class UserEntity extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @PrimaryGeneratedColumn()
+    uid: string;
 
     @PrimaryColumn()
     username: string;

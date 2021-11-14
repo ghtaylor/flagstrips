@@ -1,9 +1,4 @@
---------TODO---------
---SETUP TRIGGER FOR MODIFIED COLUMN
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
---Tables--
+CREATE EXTENSION IF NOT EXISTS "pg_hashids";
 
 CREATE TABLE IF NOT EXISTS user_role (
     name text NOT NULL UNIQUE,
@@ -11,10 +6,11 @@ CREATE TABLE IF NOT EXISTS user_role (
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PRIMARY KEY (name)
 );
-
+INSERT INTO user_role (name) VALUES ('standard');
 
 CREATE TABLE IF NOT EXISTS user_account (
-    id uuid NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
+    id serial UNIQUE,
+    uid text NOT NULL UNIQUE PRIMARY KEY,
     email text NOT NULL UNIQUE,
     username text NOT NULL UNIQUE,
     first_name text,
@@ -23,33 +19,36 @@ CREATE TABLE IF NOT EXISTS user_account (
     role_name text NOT NULL REFERENCES user_role(name) DEFAULT 'standard',
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (id, email, username)
+    UNIQUE (id, uid, email, username)
 );
 
 CREATE TABLE IF NOT EXISTS flag (
-    id uuid NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
-    user_account_id uuid NOT NULL REFERENCES user_account(id) ON DELETE CASCADE,
+    id serial UNIQUE,
+    uid text NOT NULL UNIQUE PRIMARY KEY,
+    user_account_uid text NOT NULL REFERENCES user_account (uid) ON DELETE CASCADE,
     title text NOT NULL DEFAULT 'Untitled',
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (id, user_account_id)
+    UNIQUE (id, uid, user_account_uid)
 );
 
 CREATE TABLE IF NOT EXISTS flag_padding (
-    id uuid NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
-    flag_id uuid NOT NULL REFERENCES flag(id) ON DELETE CASCADE,
+    id serial UNIQUE,
+    uid text NOT NULL UNIQUE,
+    flag_uid text NOT NULL UNIQUE REFERENCES flag (uid) ON DELETE CASCADE,
     top integer NOT NULL DEFAULT 6,
     "right" integer NOT NULL DEFAULT 4,
     bottom integer NOT NULL DEFAULT 6,
     "left" integer NOT NULL DEFAULT 4,
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (id, flag_id)
+    PRIMARY KEY (id, uid)
 );
 
 CREATE TABLE IF NOT EXISTS flag_border (
-    id uuid NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
-    flag_id uuid NOT NULL REFERENCES flag(id) ON DELETE CASCADE,
+    id serial UNIQUE,
+    uid text NOT NULL UNIQUE,
+    flag_uid text NOT NULL UNIQUE REFERENCES flag (uid) ON DELETE CASCADE,
     width integer NOT NULL DEFAULT 0,
     color text NOT NULL DEFAULT '#000000ff',
     top_left integer NOT NULL DEFAULT 8,
@@ -58,45 +57,49 @@ CREATE TABLE IF NOT EXISTS flag_border (
     bottom_right integer NOT NULL DEFAULT 8,
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (id, flag_id)
+    PRIMARY KEY (id, uid)
 );
 
 CREATE TABLE IF NOT EXISTS strip (
-    id uuid NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
-    user_account_id uuid NOT NULL REFERENCES user_account(id) ON DELETE CASCADE,
-    flag_id uuid NOT NULL REFERENCES flag(id) ON DELETE CASCADE,
+    id serial UNIQUE,
+    uid text NOT NULL UNIQUE,
+    user_account_uid text NOT NULL REFERENCES user_account (uid) ON DELETE CASCADE,
+    flag_uid text NOT NULL UNIQUE REFERENCES flag (uid) ON DELETE CASCADE,
     position integer NOT NULL DEFAULT 0,
     background_color text NOT NULL DEFAULT '#ffffffff',
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (id, user_account_id),
-    UNIQUE (flag_id, position) DEFERRABLE INITIALLY DEFERRED
+    PRIMARY KEY (id, uid),
+    UNIQUE (flag_uid, position) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS strip_image_option (
-    id uuid NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
+    id serial UNIQUE,
+    uid text NOT NULL UNIQUE,
     uri text NOT NULL DEFAULT 'https://cdns.iconmonstr.com/wp-content/assets/preview/2012/240/iconmonstr-twitter-1.png',
     name text NOT NULL DEFAULT 'Twitter',
-    PRIMARY KEY (id)
+    PRIMARY KEY (id, uid)
 );
 
-CREATE OR REPLACE FUNCTION max_strip_image_option() RETURNS uuid AS $$ 
-    SELECT id FROM strip_image_option LIMIT 1;
+CREATE OR REPLACE FUNCTION default_strip_image_option_uid() RETURNS text AS $$ 
+    SELECT uid FROM strip_image_option LIMIT 1;
 $$ LANGUAGE SQL;
 
 CREATE TABLE IF NOT EXISTS strip_image (
-    id uuid NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
-    strip_id uuid NOT NULL REFERENCES strip(id) ON DELETE CASCADE,
-    image_option_id uuid NOT NULL DEFAULT max_strip_image_option() REFERENCES strip_image_option(id),
+    id serial UNIQUE,
+    uid text NOT NULL UNIQUE,
+    strip_uid text NOT NULL UNIQUE REFERENCES strip (uid) ON DELETE CASCADE,
+    image_option_uid text NOT NULL DEFAULT default_strip_image_option_uid() REFERENCES strip_image_option (uid),
     size integer NOT NULL DEFAULT 32,
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (id, strip_id)
+    PRIMARY KEY (id, uid)
 );
 
 CREATE TABLE IF NOT EXISTS strip_text (
-    id uuid NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
-    strip_id uuid NOT NULL REFERENCES strip(id) ON DELETE CASCADE,
+    id serial UNIQUE,
+    uid text NOT NULL UNIQUE,
+    strip_uid text NOT NULL UNIQUE REFERENCES strip (uid) ON DELETE CASCADE,
     value text NOT NULL DEFAULT 'flagstrips',
     color text NOT NULL DEFAULT '#000000ff',
     font_family text NOT NULL DEFAULT 'Arial',
@@ -104,16 +107,33 @@ CREATE TABLE IF NOT EXISTS strip_text (
     font_size text NOT NULL DEFAULT '16pt',
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (id, strip_id)
+    PRIMARY KEY (id, uid)
 );
+
+CREATE OR REPLACE FUNCTION insert_flag_children() RETURNS TRIGGER AS $$
+    BEGIN
+        IF (TG_OP != 'INSERT') THEN
+            RAISE EXCEPTION 'Operation must be INSERT. % was used', TG_OP;
+        ELSE
+            INSERT INTO flag_padding (flag_uid) VALUES (NEW.uid);
+            INSERT INTO flag_border (flag_uid) VALUES (NEW.uid);
+            RETURN NEW;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER insert_flag_children
+    AFTER INSERT ON flag
+    FOR EACH ROW
+    EXECUTE FUNCTION insert_flag_children();
 
 CREATE OR REPLACE FUNCTION insert_strip_children() RETURNS TRIGGER AS $$
     BEGIN
         IF (TG_OP != 'INSERT') THEN
             RAISE EXCEPTION 'Operation must be INSERT. % was used', TG_OP;
         ELSE
-            INSERT INTO strip_image (strip_id) VALUES (NEW.id);
-            INSERT INTO strip_text (strip_id) VALUES (NEW.id);
+            INSERT INTO strip_image (strip_uid) VALUES (NEW.uid);
+            INSERT INTO strip_text (strip_uid) VALUES (NEW.uid);
             RETURN NEW;
         END IF;
     END;
@@ -130,31 +150,30 @@ CREATE OR REPLACE FUNCTION handle_strip_position() RETURNS TRIGGER AS $$
         c_insert CURSOR FOR
             SELECT position
             FROM strip
-            WHERE position >= NEW.position AND flag_id = NEW.flag_id
+            WHERE position >= NEW.position AND flag_uid = NEW.flag_uid
             ORDER BY position DESC
             FOR UPDATE;
         c_update_increase CURSOR FOR
             SELECT position
             FROM strip
-            WHERE position <= NEW.position AND position > OLD.position AND flag_id = NEW.flag_id
+            WHERE position <= NEW.position AND position > OLD.position AND flag_uid = NEW.flag_uid
             ORDER BY position DESC
             FOR UPDATE;
         c_update_decrease CURSOR FOR
             SELECT position
             FROM strip
-            WHERE position >= NEW.position AND position < OLD.position AND flag_id = NEW.flag_id
+            WHERE position >= NEW.position AND position < OLD.position AND flag_uid = NEW.flag_uid
             ORDER BY position DESC
             FOR UPDATE;
         c_delete CURSOR FOR
             SELECT position
             FROM strip
-            WHERE position > OLD.position AND flag_id = OLD.flag_id
+            WHERE position > OLD.position AND flag_uid = OLD.flag_uid
             ORDER BY position DESC
             FOR UPDATE;
     BEGIN
-        SELECT max(position) FROM strip INTO position_max WHERE flag_id = NEW.flag_id;
+        SELECT max(position) FROM strip INTO position_max WHERE flag_uid = NEW.flag_uid;
 
-        
         IF TG_OP = 'INSERT' THEN
             --- If out-of-bounds, raise exception.
             IF NEW.position < 0 OR NEW.position > (SELECT position_max + 1) THEN
@@ -220,23 +239,6 @@ CREATE TRIGGER handle_strip_position_delete
     WHEN (pg_trigger_depth() = 0)
     EXECUTE FUNCTION handle_strip_position();
 
-CREATE OR REPLACE FUNCTION insert_flag_children() RETURNS TRIGGER AS $$
-    BEGIN
-        IF (TG_OP != 'INSERT') THEN
-            RAISE EXCEPTION 'Operation must be INSERT. % was used', TG_OP;
-        ELSE
-            INSERT INTO flag_padding (flag_id) VALUES (NEW.id);
-            INSERT INTO flag_border (flag_id) VALUES (NEW.id);
-            RETURN NEW;
-        END IF;
-    END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER insert_flag_children
-    AFTER INSERT ON flag
-    FOR EACH ROW
-    EXECUTE FUNCTION insert_flag_children();
-
 CREATE OR REPLACE FUNCTION update_modified_timestamp() RETURNS TRIGGER AS $$
     BEGIN
         NEW.modified := now();
@@ -261,7 +263,32 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION apply_uid() RETURNS TRIGGER AS $$
+    BEGIN
+        IF (TG_OP != 'INSERT') THEN
+            RAISE EXCEPTION 'Operation must be INSERT. % was used', TG_OP;
+        ELSE
+            NEW.uid := (SELECT id_encode(NEW.id, TG_TABLE_NAME, 10));
+            RETURN NEW;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
 
+DO $$
+DECLARE
+    t record;
+BEGIN
+    FOR t IN 
+        SELECT * FROM information_schema.columns
+        WHERE column_name = 'uid'
+    LOOP
+        EXECUTE format('CREATE TRIGGER apply_uid
+                        BEFORE INSERT ON %I
+                        FOR EACH ROW
+                        EXECUTE FUNCTION apply_uid();',
+                        t.table_name);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
 
---Populate data--
-INSERT INTO user_role (name) VALUES ('standard');
+INSERT INTO strip_image_option DEFAULT VALUES;

@@ -4,24 +4,27 @@ import StripImageOptionEntity from "./StripImageOption";
 
 @Entity({ name: "strip_image" })
 export default class StripImageEntity extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @PrimaryGeneratedColumn()
+    uid: string;
 
     @Column()
     size: number;
 
     @Column()
-    stripId: string;
+    stripUid: string;
 
     @OneToOne(() => StripEntity, (strip) => strip.image)
-    @JoinColumn({ name: "strip_id", referencedColumnName: "id" })
+    @JoinColumn({ name: "strip_uid", referencedColumnName: "uid" })
     strip: StripEntity;
 
     @Column()
-    imageOptionId: string;
+    imageOptionUid: string;
 
     @OneToOne(() => StripImageOptionEntity)
-    @JoinColumn({ name: "image_option_id", referencedColumnName: "id" })
+    @JoinColumn({ name: "image_option_uid", referencedColumnName: "uid" })
     imageOption: StripImageOptionEntity;
 
     @CreateDateColumn()

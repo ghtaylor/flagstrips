@@ -17,14 +17,17 @@ import FlagPaddingEntity from "./FlagPadding";
 
 @Entity({ name: "flag" })
 export default class FlagEntity extends BaseEntity {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-    @Column({ name: "user_account_id" })
-    userId: string;
+    @PrimaryGeneratedColumn()
+    uid: string;
+
+    @Column({ name: "user_account_uid" })
+    userUid: string;
 
     @ManyToOne(() => UserEntity, (user) => user.flags)
-    @JoinColumn({ name: "user_account_id", referencedColumnName: "id" })
+    @JoinColumn({ name: "user_account_uid", referencedColumnName: "uid" })
     user: UserEntity;
 
     @OneToMany(() => StripEntity, (strip) => strip.flag)

@@ -25,7 +25,7 @@ const getInitialStateValues = async (): Promise<AuthStateValues> => {
 };
 
 const createStore = (initialStateValues: AuthStateValues): UseBoundStore<AuthState, StoreApi<AuthState>> =>
-    create((set) => ({
+    create<AuthState>((set) => ({
         ...initialStateValues,
         login: async (userLogin: UserLogin) => {
             await getAccessTokenByLogin(userLogin);
