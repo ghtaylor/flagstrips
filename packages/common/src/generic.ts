@@ -1,8 +1,15 @@
-import * as t from "runtypes";
+import { z } from "zod";
 
-export const TimeStamped = t.Record({
-    created: t.InstanceOf(Date),
-    modified: t.InstanceOf(Date),
+export const UpperLower = z.object({
+    upper: z.number(),
+    lower: z.number(),
 });
 
-export type TimeStamped = t.Static<typeof TimeStamped>;
+export type UpperLower = z.infer<typeof UpperLower>;
+
+export const TimeStamped = z.object({
+    created: z.date(),
+    modified: z.date(),
+});
+
+export type TimeStamped = z.infer<typeof TimeStamped>;

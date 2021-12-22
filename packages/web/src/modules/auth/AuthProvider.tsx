@@ -27,7 +27,7 @@ const getInitialStateValues = async (): Promise<AuthStateValues> => {
 const createStore = (initialStateValues: AuthStateValues): UseBoundStore<AuthState, StoreApi<AuthState>> =>
     create<AuthState>((set) => ({
         ...initialStateValues,
-        login: async (userLogin: UserLogin) => {
+        login: async (userLogin) => {
             await getAccessTokenByLogin(userLogin);
             const user = await getUser();
             return set((state) =>
@@ -51,18 +51,19 @@ const createStore = (initialStateValues: AuthStateValues): UseBoundStore<AuthSta
 const { Provider, useStore } = createContext<AuthState>();
 
 const AuthProvider: React.FC = ({ children }) => {
-    const [isFetching, setIsFetching] = useState(true);
-    const [initialStateValues, setInitialStateValues] = useState<AuthStateValues>({ isAuthenticated: false });
+    const [initialStateValues, setInitialStateValues] = useState<AuthStateValues>();
 
     useEffect(() => {
         (async () => {
-            const initialStateValues = await getInitialStateValues();
-            setInitialStateValues(initialStateValues);
-            setIsFetching(false);
+            setInitialStateValues(await getInitialStateValues());
         })();
     }, []);
 
-    return isFetching ? <></> : <Provider createStore={() => createStore(initialStateValues)}>{children}</Provider>;
+    return initialStateValues ? (
+        <Provider createStore={() => createStore(initialStateValues)}>{children}</Provider>
+    ) : (
+        <></>
+    );
 };
 
 export const useAuth = useStore;

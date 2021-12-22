@@ -1,51 +1,57 @@
-import * as t from "runtypes";
+import { z } from "zod";
+import { UpperLower } from ".";
 import { TimeStamped } from "./generic";
 
-export const StripText = t.Record({
-    uid: t.Optional(t.String),
-    value: t.String,
-    color: t.String,
-    fontFamily: t.String,
-    fontWeight: t.Number,
-    fontSize: t.String,
+export const STRIP_TEXT_FONT_SIZE_UPPER_LOWER: UpperLower = {
+    upper: 128,
+    lower: 4,
+};
+
+export const StripText = z.object({
+    uid: z.string().optional(),
+    value: z.string(),
+    color: z.string(),
+    fontFamily: z.string(),
+    fontWeight: z.union([z.literal("normal"), z.literal("bold"), z.literal("bolder"), z.literal("lighter")]),
+    fontSize: z.number().min(STRIP_TEXT_FONT_SIZE_UPPER_LOWER.lower).max(STRIP_TEXT_FONT_SIZE_UPPER_LOWER.upper),
 });
 
-export const StripTextPost = StripText.omit("uid").asPartial();
+export const StripTextPost = StripText.omit({ uid: true }).deepPartial();
 
-export const StripImageOption = t.Record({
-    uid: t.String,
-    uri: t.String,
-    name: t.String,
+export const StripImageOption = z.object({
+    uid: z.string(),
+    uri: z.string(),
+    name: z.string(),
 });
 
-export const StripImage = t.Record({
-    uid: t.Optional(t.String),
-    size: t.Number,
+export const StripImage = z.object({
+    uid: z.string().optional(),
+    size: z.number(),
     imageOption: StripImageOption,
 });
 
-export const StripImagePost = t.Intersect(
-    StripImage.omit("uid", "imageOption").asPartial(),
-    t.Record({ imageOptionuid: t.String }).asPartial(),
+export const StripImagePost = z.intersection(
+    StripImage.omit({ uid: true, imageOption: true }).deepPartial(),
+    z.object({ imageOptionUid: z.string() }).deepPartial(),
 );
 
 export const Strip = TimeStamped.extend({
-    uid: t.String,
-    position: t.Number,
-    backgroundColor: t.String,
+    uid: z.string(),
+    position: z.number(),
+    backgroundColor: z.string(),
     text: StripText,
     image: StripImage,
 });
 
-export const StripPost = t.Intersect(
-    Strip.omit("uid", "text", "image").asPartial(),
-    t.Record({ text: StripTextPost, image: StripImagePost }).asPartial(),
+export const StripPost = z.intersection(
+    Strip.omit({ uid: true, text: true, image: true }).deepPartial(),
+    z.object({ text: StripTextPost, image: StripImagePost }).deepPartial(),
 );
 
-export type StripText = t.Static<typeof StripText>;
-export type StripTextPost = t.Static<typeof StripTextPost>;
-export type StripImageOption = t.Static<typeof StripImageOption>;
-export type StripImage = t.Static<typeof StripImage>;
-export type StripImagePost = t.Static<typeof StripImagePost>;
-export type Strip = t.Static<typeof Strip>;
-export type StripPost = t.Static<typeof StripPost>;
+export type StripText = z.infer<typeof StripText>;
+export type StripTextPost = z.infer<typeof StripTextPost>;
+export type StripImageOption = z.infer<typeof StripImageOption>;
+export type StripImage = z.infer<typeof StripImage>;
+export type StripImagePost = z.infer<typeof StripImagePost>;
+export type Strip = z.infer<typeof Strip>;
+export type StripPost = z.infer<typeof StripPost>;

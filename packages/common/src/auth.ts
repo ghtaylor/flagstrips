@@ -1,15 +1,15 @@
-import * as t from "runtypes";
+import { z } from "zod";
 
 export const COOKIE_KEY_REFRESH_TOKEN = "refresh_token";
 
-export const AuthAccessTokenResponse = t.Record({
-    accessToken: t.String,
+export const AuthAccessTokenResponse = z.object({
+    accessToken: z.string(),
 });
 
-export const AuthLoginJWTPayload = t.Record({
-    userUid: t.String,
-    role: t.String,
+export const AuthLoginJWTPayload = z.object({
+    userUid: z.string(),
+    role: z.string(),
 });
 
-export type AuthAccessTokenResponse = t.Static<typeof AuthAccessTokenResponse>;
-export type AuthLoginJWTPayload = t.Static<typeof AuthLoginJWTPayload>;
+export type AuthAccessTokenResponse = z.infer<typeof AuthAccessTokenResponse>;
+export type AuthLoginJWTPayload = z.infer<typeof AuthLoginJWTPayload>;

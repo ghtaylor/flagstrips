@@ -14,14 +14,14 @@ interface LoginForm {
     password: string;
 }
 
+const initialFormValues: LoginForm = {
+    emailOrUsername: "",
+    password: "",
+};
+
 const LoginPage: React.FC = () => {
     const { login } = useAuth();
     const { push } = useRouter();
-
-    const initialFormValues: LoginForm = {
-        emailOrUsername: "",
-        password: "",
-    };
 
     const onFormSubmit = async ({ emailOrUsername, password }: LoginForm) => {
         try {

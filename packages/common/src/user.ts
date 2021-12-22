@@ -1,44 +1,44 @@
-import * as t from "runtypes";
+import { z } from "zod";
 import { TimeStamped } from "./generic";
 
-export const UserRole = t.Record({
-    name: t.String,
+export const UserRole = z.object({
+    name: z.string(),
 });
 
-export type UserRole = t.Static<typeof UserRole>;
+export type UserRole = z.infer<typeof UserRole>;
 
-export const UserLoginBase = t.Record({
-    password: t.String,
+export const UserLoginBase = z.object({
+    password: z.string(),
 });
 
 export const UserLoginEmail = UserLoginBase.extend({
-    email: t.String,
+    email: z.string(),
 });
 
 export const UserLoginUsername = UserLoginBase.extend({
-    username: t.String,
+    username: z.string(),
 });
 
-export const UserLogin = t.Union(UserLoginEmail, UserLoginUsername);
+export const UserLogin = z.union([UserLoginEmail, UserLoginUsername]);
 
-export type UserLogin = t.Static<typeof UserLogin>;
+export type UserLogin = z.infer<typeof UserLogin>;
 
 export const UserWithPassword = TimeStamped.extend({
-    uid: t.String,
-    email: t.String,
-    username: t.String,
-    password: t.String,
-    firstName: t.Optional(t.String),
-    lastName: t.Optional(t.String),
-    roleName: t.String,
+    uid: z.string(),
+    email: z.string(),
+    username: z.string(),
+    password: z.string(),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    roleName: z.string(),
 });
 
-export type UserWithPassword = t.Static<typeof UserWithPassword>;
+export type UserWithPassword = z.infer<typeof UserWithPassword>;
 
-export const User = UserWithPassword.omit("password");
+export const User = UserWithPassword.omit({ password: true });
 
-export type User = t.Static<typeof User>;
+export type User = z.infer<typeof User>;
 
-export const UserPost = UserWithPassword.omit("uid", "roleName", "created", "modified");
+export const UserPost = UserWithPassword.omit({ uid: true, roleName: true, created: true, modified: true });
 
-export type UserPost = t.Static<typeof UserPost>;
+export type UserPost = z.infer<typeof UserPost>;

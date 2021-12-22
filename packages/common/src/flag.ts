@@ -1,51 +1,52 @@
-import * as t from "runtypes";
+import { z } from "zod";
 import { TimeStamped } from "./generic";
 import { Strip, StripPost } from "./strip";
 
-export const FlagBorder = t.Record({
-    uid: t.Optional(t.String),
-    width: t.Number,
-    color: t.String,
-    topLeft: t.Number,
-    topRight: t.Number,
-    bottomLeft: t.Number,
-    bottomRight: t.Number,
+export const FlagBorder = z.object({
+    uid: z.string().optional(),
+    width: z.number(),
+    color: z.string(),
+    topLeft: z.number(),
+    topRight: z.number(),
+    bottomLeft: z.number(),
+    bottomRight: z.number(),
 });
 
-export const FlagBorderPost = FlagBorder.omit("uid").asPartial();
+export const FlagBorderPost = FlagBorder.omit({ uid: true }).deepPartial();
 
-export const FlagPadding = t.Record({
-    uid: t.Optional(t.String),
-    top: t.Number,
-    right: t.Number,
-    bottom: t.Number,
-    left: t.Number,
+export const FlagPadding = z.object({
+    uid: z.string().optional(),
+    top: z.number(),
+    right: z.number(),
+    bottom: z.number(),
+    left: z.number(),
 });
 
-export const FlagPaddingPost = FlagPadding.omit("uid").asPartial();
+export const FlagPaddingPost = FlagPadding.omit({ uid: true }).deepPartial();
 
 export const Flag = TimeStamped.extend({
-    uid: t.String,
-    title: t.String,
+    uid: z.string(),
+    title: z.string(),
     border: FlagBorder,
     padding: FlagPadding,
-    strips: t.Array(Strip),
+    strips: z.array(Strip),
 });
 
-export const FlagPost = t.Intersect(
-    Flag.omit("uid", "border", "padding", "strips").asPartial(),
-    t
-        .Record({
+export const FlagPost = z.intersection(
+    Flag.omit({ uid: true, border: true, padding: true, strips: true }).deepPartial(),
+    z
+        .object({
             border: FlagBorderPost,
             padding: FlagPaddingPost,
-            strips: t.Array(StripPost),
+            strips: z.array(StripPost),
         })
-        .asPartial(),
+
+        .deepPartial(),
 );
 
-export type FlagBorder = t.Static<typeof FlagBorder>;
-export type FlagBorderPost = t.Static<typeof FlagBorderPost>;
-export type FlagPadding = t.Static<typeof FlagPadding>;
-export type FlagPaddingPost = t.Static<typeof FlagPaddingPost>;
-export type Flag = t.Static<typeof Flag>;
-export type FlagPost = t.Static<typeof FlagPost>;
+export type FlagBorder = z.infer<typeof FlagBorder>;
+export type FlagBorderPost = z.infer<typeof FlagBorderPost>;
+export type FlagPadding = z.infer<typeof FlagPadding>;
+export type FlagPaddingPost = z.infer<typeof FlagPaddingPost>;
+export type Flag = z.infer<typeof Flag>;
+export type FlagPost = z.infer<typeof FlagPost>;

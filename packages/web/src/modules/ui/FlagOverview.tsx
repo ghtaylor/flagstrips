@@ -1,6 +1,6 @@
 import { Box, Button, ComponentWithAs, Flex, FlexProps, Text } from "@chakra-ui/react";
 import { Flag } from "@flagstrips/common";
-import BasicStrip from "./BasicStrip";
+import StripOverview from "./StripOverview";
 
 interface FlagOverviewProps {
     flag: Flag;
@@ -16,9 +16,10 @@ const FlagOverview: ComponentWithAs<"article", FlexProps & FlagOverviewProps> = 
 }) => (
     <Flex as="article" flexDirection="column" borderColor="gray.200" borderWidth={1} borderRadius={4} {...props}>
         <Box padding={2}>
-            {flag.strips.map((strip, index) => (
-                <BasicStrip key={strip.uid} strip={strip} marginBottom={index === flag.strips.length - 1 ? 0 : 1} />
+            {flag.strips.slice(0, 3).map((strip, index) => (
+                <StripOverview key={strip.uid} strip={strip} marginBottom={index === flag.strips.length - 1 ? 0 : 1} />
             ))}
+            {flag.strips.length > 3 && <StripOverview>{flag.strips.length - 3} more...</StripOverview>}
         </Box>
         <Flex flexDirection="column" padding={2} marginTop="auto" borderColor="gray.200" borderTopWidth={1}>
             <Text size="sm" fontWeight="semibold" paddingBottom={6}>

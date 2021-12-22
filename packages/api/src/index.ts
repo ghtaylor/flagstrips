@@ -20,6 +20,7 @@ if (!PORT) {
 (async () => {
     try {
         await createDBConnection();
+        console.log("Successfully connected to database.");
     } catch (error) {
         console.error(`An error occurred connecting to database: ${error}`);
     }

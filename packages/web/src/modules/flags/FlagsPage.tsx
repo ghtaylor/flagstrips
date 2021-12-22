@@ -1,11 +1,16 @@
 import { Container, Heading, SimpleGrid } from "@chakra-ui/react";
 import Head from "next/head";
-import useFlags from "../hooks/useFlags";
+import { useEffect } from "react";
+import { useFlags } from "../hooks/useQueryData";
 import MainLayout from "../layouts/MainLayout";
 import FlagOverview from "../ui/FlagOverview";
 
 const FlagPage: React.FC = () => {
     const { data: flags } = useFlags();
+
+    useEffect(() => {
+        console.log(flags);
+    }, [flags]);
 
     return (
         <>

@@ -17,7 +17,6 @@ export default async function createDBConnection(): Promise<void> {
         username: PG_USER,
         password: PG_PASS,
         synchronize: false,
-        logging: true,
         entities: ["**/entities/**/*.ts"],
         namingStrategy: new SnakeNamingStrategy(),
     });

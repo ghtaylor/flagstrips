@@ -14,15 +14,16 @@ export default class AuthService {
     static async login(userLogin: UserLogin): Promise<{ accessToken: string; refreshToken: string }> {
         let userWithPassword: UserWithPassword | undefined;
 
-        if (UserLoginEmail.guard(userLogin)) {
-            userWithPassword = await UserService.getUserWithPasswordByEmail(userLogin.email);
-        } else if (UserLoginUsername.guard(userLogin)) {
-            userWithPassword = await UserService.getUserWithPasswordByUsername(userLogin.username);
+        const parseUserLoginEmail = UserLoginEmail.safeParse(userLogin);
+        const parseUserLoginUsername = UserLoginUsername.safeParse(userLogin);
+        if (parseUserLoginEmail.success) {
+            userWithPassword = await UserService.getUserWithPasswordByEmail(parseUserLoginEmail.data.email);
+        } else if (parseUserLoginUsername.success) {
+            userWithPassword = await UserService.getUserWithPasswordByUsername(parseUserLoginUsername.data.username);
         }
 
-        if (!userWithPassword) {
-            throw unsuccessfulLoginError("username");
-        }
+        // TODO: Refine this to be more accurate.
+        if (!userWithPassword) throw unsuccessfulLoginError("username");
 
         if (await bcrypt.compare(userLogin.password, userWithPassword.password)) {
             //Authenticated.

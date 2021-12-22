@@ -1,5 +1,5 @@
-import { Flag, FlagPost, getLeafPathsOfRecord } from "@flagstrips/common";
-import { pick, omit, isEmpty, sortBy } from "lodash";
+import { Flag, FlagPost } from "@flagstrips/common";
+import { omit, isEmpty, sortBy } from "lodash";
 import FlagEntity from "../entities/Flag";
 import FlagBorderEntity from "../entities/Flag/FlagBorder";
 import FlagPaddingEntity from "../entities/Flag/FlagPadding";
@@ -8,10 +8,10 @@ import { transformStripEntityToStrip } from "./strip.service";
 const relations = ["border", "padding", "strips", "strips.text", "strips.image", "strips.image.imageOption"];
 
 export const transformFlagEntityToFlag = (flagEntity: FlagEntity): Flag => {
-    let flag = pick(flagEntity, getLeafPathsOfRecord(Flag));
-    flag = omit(flag, ["id", "border.uid", "padding.uid"]);
-    let strips = flag.strips!.map(transformStripEntityToStrip);
+    let strips = flagEntity.strips!.map(transformStripEntityToStrip);
     strips = sortBy(strips, "position");
+    let flag = Flag.parse(flagEntity);
+    flag = omit(flag, ["border.uid", "padding.uid"]) as Flag;
     return { ...(flag as Flag), strips };
 };
 

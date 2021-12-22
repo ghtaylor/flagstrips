@@ -1,14 +1,15 @@
-import { getLeafPathsOfRecord, Strip, StripPost } from "@flagstrips/common";
-import { isEmpty, omit, pick, sortBy } from "lodash";
+import { Strip, StripImageOption, StripPost } from "@flagstrips/common";
+import { isEmpty, omit, sortBy } from "lodash";
 import StripEntity from "../entities/Strip";
 import StripImageEntity from "../entities/Strip/StripImage";
+import StripImageOptionEntity from "../entities/Strip/StripImageOption";
 import StripTextEntity from "../entities/Strip/StripText";
 
 const relations = ["flag", "text", "image", "image.imageOption"];
 
 export const transformStripEntityToStrip = (stripEntity: StripEntity): Strip => {
-    let strip = pick(stripEntity, getLeafPathsOfRecord(Strip));
-    strip = omit(strip, ["id", "text.uid", "image.uid"]);
+    let strip = Strip.parse(stripEntity);
+    strip = omit(strip, ["text.uid", "image.uid"]) as Strip;
     return strip as Strip;
 };
 
@@ -65,5 +66,11 @@ export default class StripService {
 
     static async deleteStrip(uid: string): Promise<void> {
         await StripEntity.delete({ uid });
+    }
+
+    static async getStripImageOptions(): Promise<StripImageOption[]> {
+        const stripImageOptionEntities = await StripImageOptionEntity.find();
+
+        return stripImageOptionEntities.map((stripImageOptionEntity) => omit(stripImageOptionEntity, "id"));
     }
 }

@@ -1,4 +1,14 @@
-import { ApiResponseCollection, AuthAccessTokenResponse, Flag, User, UserLogin } from "@flagstrips/common";
+import {
+    ApiResponseCollection,
+    AuthAccessTokenResponse,
+    Flag,
+    FlagPost,
+    Strip,
+    StripImageOption,
+    StripPost,
+    User,
+    UserLogin,
+} from "@flagstrips/common";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import createAuthRefreshInterceptor from "axios-auth-refresh";
 
@@ -51,4 +61,33 @@ export const getFlags = async (): Promise<Flag[]> => {
 export const getFlagByUid = async (uid: string): Promise<Flag> => {
     const { data }: AxiosResponse<Flag> = await apiAxios.get(`/me/flags/${uid}`);
     return data;
+};
+
+export const patchFlagByUid = async (uid: string, flagPatch: FlagPost): Promise<Flag> => {
+    const { data }: AxiosResponse<Flag> = await apiAxios.patch(`/me/flags/${uid}`, flagPatch);
+    return data;
+};
+
+export const getStripByUid = async (uid: string): Promise<Strip> => {
+    const { data }: AxiosResponse<Strip> = await apiAxios.get(`/me/strips/${uid}`);
+    return data;
+};
+
+export const patchStripByUid = async (uid: string, stripPatch: StripPost): Promise<Strip> => {
+    const { data }: AxiosResponse<Strip> = await apiAxios.patch(`/me/strips/${uid}`, stripPatch);
+    return data;
+};
+
+export const postStrip = async (flagUid: string, stripPost?: StripPost): Promise<Strip> => {
+    const { data }: AxiosResponse<Strip> = await apiAxios.post(`/me/flags/${flagUid}/strips`, stripPost);
+    return data;
+};
+
+export const deleteStripByUid = async (uid: string): Promise<void> => apiAxios.delete(`/me/strips/${uid}`);
+
+export const getStripImageOptions = async (): Promise<StripImageOption[]> => {
+    const { data }: AxiosResponse<ApiResponseCollection<StripImageOption>> = await apiAxios.get(
+        "/me/strips/image-options",
+    );
+    return data.results;
 };

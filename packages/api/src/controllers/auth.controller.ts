@@ -1,6 +1,6 @@
 import { AuthAccessTokenResponse, COOKIE_KEY_REFRESH_TOKEN, UserLogin } from "@flagstrips/common";
 import { NextFunction, Request, Response } from "express";
-import { invalidPostBodyError, unauthorizedError } from "../errors";
+import { unauthorizedError } from "../errors";
 import AuthService from "../services/auth.service";
 
 export default class AuthController {
@@ -13,18 +13,14 @@ export default class AuthController {
         res: Response<AuthAccessTokenResponse>,
         next: NextFunction,
     ): Promise<Response | void> {
-        if (UserLogin.guard(req.body)) {
-            const userLogin = req.body;
-            try {
-                const { accessToken, refreshToken } = await AuthService.login(userLogin);
-                const accessTokenResponse: AuthAccessTokenResponse = { accessToken };
-                AuthController.applyRefreshTokenCookie(res, refreshToken);
-                return res.status(200).send(accessTokenResponse);
-            } catch (error) {
-                next(error);
-            }
-        } else {
-            return next(invalidPostBodyError());
+        try {
+            const userLogin = UserLogin.parse(req.body);
+            const { accessToken, refreshToken } = await AuthService.login(userLogin);
+            const accessTokenResponse: AuthAccessTokenResponse = { accessToken };
+            AuthController.applyRefreshTokenCookie(res, refreshToken);
+            return res.status(200).send(accessTokenResponse);
+        } catch (error) {
+            next(error);
         }
     }
 

@@ -1,5 +1,4 @@
-import { getLeafPathsOfRecord, User, UserPost, UserWithPassword } from "@flagstrips/common";
-import { pick, omit } from "lodash";
+import { User, UserPost, UserWithPassword } from "@flagstrips/common";
 import { PostgresError } from "pg-error-enum";
 import UserEntity from "../entities/User";
 import { duplicateResourceError, missingRequiredFieldError } from "../errors";
@@ -15,9 +14,7 @@ export const applyPasswordHash = async (userCreate: UserPost): Promise<UserPost>
 });
 
 export const transformUserEntityToUser = (userEntity: UserEntity): User => {
-    console.log(userEntity);
-    let user = pick(userEntity, getLeafPathsOfRecord(User));
-    user = omit(user, "id");
+    const user = User.parse(userEntity);
     return user as User;
 };
 
@@ -34,12 +31,12 @@ export default class UserService {
 
     static async getUserWithPasswordByEmail(email: string): Promise<UserWithPassword | undefined> {
         const userEntity = await UserEntity.findOne({ where: { email }, relations });
-        return userEntity ? (pick(userEntity, Object.keys(UserWithPassword.fields)) as UserWithPassword) : undefined;
+        return userEntity ? UserWithPassword.parse(userEntity) : undefined;
     }
 
     static async getUserWithPasswordByUsername(username: string): Promise<UserWithPassword | undefined> {
         const userEntity = await UserEntity.findOne({ where: { username }, relations });
-        return userEntity ? (pick(userEntity, Object.keys(UserWithPassword.fields)) as UserWithPassword) : undefined;
+        return userEntity ? UserWithPassword.parse(userEntity) : undefined;
     }
 
     static async postUser(userPost: UserPost): Promise<User> {

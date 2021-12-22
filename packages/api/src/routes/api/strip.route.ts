@@ -3,6 +3,8 @@ import StripController from "../../controllers/strip.controller";
 
 const router = Router();
 
+router.get("/image-options", StripController.getStripImageOptions);
+
 router.param("stripId", StripController.applyStripToRequestByIdParam);
 router.get("/", StripController.getStrips);
 router.get("/:stripId", StripController.getStripById);

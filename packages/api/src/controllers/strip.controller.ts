@@ -1,12 +1,6 @@
-import { ApiResponseCollection, getLeafPathsOfRecord, Strip, StripPost } from "@flagstrips/common";
+import { ApiResponseCollection, Strip, StripImageOption, StripPost } from "@flagstrips/common";
 import { NextFunction, Request, Response } from "express";
-import { pick } from "lodash";
-import {
-    forbiddenResourceAccessError,
-    invalidPostBodyError,
-    parentResourceInvalidError,
-    unauthorizedError,
-} from "../errors";
+import { forbiddenResourceAccessError, parentResourceInvalidError, unauthorizedError } from "../errors";
 import StripService from "../services/strip.service";
 
 export default class StripController {
@@ -17,9 +11,6 @@ export default class StripController {
         uid: string,
     ): Promise<Response | void> {
         try {
-            console.log("applying");
-            console.log("flag", req.flag);
-
             const strip = await StripService.getStripByUid(uid, req.authenticatedUser?.uid, req.flag?.uid);
             if (strip) {
                 req.strip = strip;
@@ -55,17 +46,12 @@ export default class StripController {
         if (!req.authenticatedUser) return next(unauthorizedError());
         if (!req.flag) return next(parentResourceInvalidError("Flag"));
 
-        const body = pick(req.body, getLeafPathsOfRecord(StripPost));
-
-        if (StripPost.guard(body)) {
-            try {
-                const strip = await StripService.createStrip(body, req.authenticatedUser.uid, req.flag.uid);
-                return res.status(201).json(strip);
-            } catch (error) {
-                return next(error);
-            }
-        } else {
-            return next(invalidPostBodyError());
+        try {
+            const stripPost = StripPost.parse(req.body);
+            const strip = await StripService.createStrip(stripPost, req.authenticatedUser.uid, req.flag.uid);
+            return res.status(201).json(strip);
+        } catch (error) {
+            return next(error);
         }
     }
 
@@ -73,17 +59,12 @@ export default class StripController {
         if (!req.authenticatedUser) return next(unauthorizedError());
         if (!req.strip) return next(forbiddenResourceAccessError("Strip"));
 
-        const body = pick(req.body, getLeafPathsOfRecord(StripPost));
-
-        if (StripPost.guard(body)) {
-            try {
-                const strip = await StripService.updateStrip(body, req.strip.uid);
-                return res.status(200).json(strip);
-            } catch (error) {
-                return next(error);
-            }
-        } else {
-            return next(invalidPostBodyError());
+        try {
+            const stripPost = StripPost.parse(req.body);
+            const strip = await StripService.updateStrip(stripPost, req.strip.uid);
+            return res.status(200).json(strip);
+        } catch (error) {
+            return next(error);
         }
     }
 
@@ -94,6 +75,19 @@ export default class StripController {
         try {
             await StripService.deleteStrip(req.strip.uid);
             return res.status(204).send();
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    static async getStripImageOptions(
+        _req: Request,
+        res: Response<ApiResponseCollection<StripImageOption>>,
+        next: NextFunction,
+    ): Promise<Response | void> {
+        try {
+            const stripImageOptions = await StripService.getStripImageOptions();
+            return res.status(200).send({ results: stripImageOptions });
         } catch (error) {
             return next(error);
         }

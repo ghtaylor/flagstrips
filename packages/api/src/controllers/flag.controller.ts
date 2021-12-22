@@ -1,7 +1,7 @@
-import { ApiResponseCollection, Flag, FlagPost, getLeafPathsOfRecord } from "@flagstrips/common";
+import { ApiResponseCollection, Flag, FlagPost } from "@flagstrips/common";
 import { NextFunction, Request, Response } from "express";
-import { omit, pick } from "lodash";
-import { forbiddenResourceAccessError, invalidPostBodyError, unauthorizedError } from "../errors";
+import { omit } from "lodash";
+import { forbiddenResourceAccessError, unauthorizedError } from "../errors";
 import FlagService from "../services/flag.service";
 
 export default class FlagController {
@@ -46,17 +46,12 @@ export default class FlagController {
     static async postFlag(req: Request, res: Response<Flag>, next: NextFunction): Promise<Response | void> {
         if (!req.authenticatedUser) return next(unauthorizedError());
 
-        const body = pick(req.body, getLeafPathsOfRecord(FlagPost));
-
-        if (FlagPost.guard(body)) {
-            try {
-                const flag = await FlagService.createFlag(body, req.authenticatedUser.uid);
-                return res.status(201).json(flag);
-            } catch (error) {
-                return next(error);
-            }
-        } else {
-            return next(invalidPostBodyError());
+        try {
+            const flagPost = FlagPost.parse(req.body);
+            const flag = await FlagService.createFlag(flagPost, req.authenticatedUser.uid);
+            return res.status(201).json(flag);
+        } catch (error) {
+            return next(error);
         }
     }
 
@@ -64,18 +59,13 @@ export default class FlagController {
         if (!req.authenticatedUser) return next(unauthorizedError());
         if (!req.flag) return next(forbiddenResourceAccessError("Flag"));
 
-        let body = pick(req.body, getLeafPathsOfRecord(FlagPost));
-        body = omit(body, "strips");
-
-        if (FlagPost.guard(body)) {
-            try {
-                const flag = await FlagService.updateFlag(body, req.flag.uid);
-                return res.status(200).json(flag);
-            } catch (error) {
-                return next(error);
-            }
-        } else {
-            return next(invalidPostBodyError());
+        try {
+            let flagPost = FlagPost.parse(req.body);
+            flagPost = omit(flagPost, "strips");
+            const flag = await FlagService.updateFlag(flagPost, req.flag.uid);
+            return res.status(200).json(flag);
+        } catch (error) {
+            return next(error);
         }
     }
 

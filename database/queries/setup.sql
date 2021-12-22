@@ -1,3 +1,5 @@
+-- TODO: Add handler for position 0 strip added. (Currently defaults to null).
+
 CREATE EXTENSION IF NOT EXISTS "pg_hashids";
 
 CREATE TABLE IF NOT EXISTS user_role (
@@ -64,8 +66,8 @@ CREATE TABLE IF NOT EXISTS strip (
     id serial UNIQUE,
     uid text NOT NULL UNIQUE,
     user_account_uid text NOT NULL REFERENCES user_account (uid) ON DELETE CASCADE,
-    flag_uid text NOT NULL UNIQUE REFERENCES flag (uid) ON DELETE CASCADE,
-    position integer NOT NULL DEFAULT 0,
+    flag_uid text NOT NULL REFERENCES flag (uid) ON DELETE CASCADE,
+    position integer DEFAULT 0,
     background_color text NOT NULL DEFAULT '#ffffffff',
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -101,13 +103,16 @@ CREATE TABLE IF NOT EXISTS strip_text (
     uid text NOT NULL UNIQUE,
     strip_uid text NOT NULL UNIQUE REFERENCES strip (uid) ON DELETE CASCADE,
     value text NOT NULL DEFAULT 'flagstrips',
-    color text NOT NULL DEFAULT '#000000ff',
+    color text NOT NULL DEFAULT '#000000FF',
     font_family text NOT NULL DEFAULT 'Arial',
     font_weight text NOT NULL DEFAULT 'normal',
-    font_size text NOT NULL DEFAULT '16pt',
+    font_size integer NOT NULL DEFAULT 16,
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (id, uid)
+    PRIMARY KEY (id, uid),
+    CHECK (color ~* '^#(?:[0-9a-fA-F]{3,4}){1,2}$'),
+    CHECK (font_weight ~* '^(normal|bold|bolder|lighter)$'),
+    CHECK (font_size BETWEEN 1 AND 256)
 );
 
 CREATE OR REPLACE FUNCTION insert_flag_children() RETURNS TRIGGER AS $$
@@ -117,6 +122,7 @@ CREATE OR REPLACE FUNCTION insert_flag_children() RETURNS TRIGGER AS $$
         ELSE
             INSERT INTO flag_padding (flag_uid) VALUES (NEW.uid);
             INSERT INTO flag_border (flag_uid) VALUES (NEW.uid);
+            INSERT INTO strip (flag_uid, user_account_uid) VALUES (NEW.uid, NEW.user_account_uid);
             RETURN NEW;
         END IF;
     END;
@@ -173,9 +179,8 @@ CREATE OR REPLACE FUNCTION handle_strip_position() RETURNS TRIGGER AS $$
             FOR UPDATE;
     BEGIN
         SELECT max(position) FROM strip INTO position_max WHERE flag_uid = NEW.flag_uid;
-
         IF TG_OP = 'INSERT' THEN
-            --- If out-of-bounds, raise exception.
+            -- If out-of-bounds, raise exception.
             IF NEW.position < 0 OR NEW.position > (SELECT position_max + 1) THEN
                 RAISE EXCEPTION 'Strip position provided invalid.';
             -- If position provided is equal to (max + 1), allow.
@@ -194,7 +199,7 @@ CREATE OR REPLACE FUNCTION handle_strip_position() RETURNS TRIGGER AS $$
             END IF;
 
         ELSIF TG_OP = 'UPDATE' THEN
-            --- If out-of-bounds, raise exception.
+            -- If out-of-bounds, raise exception.
             IF NEW.position < 0 OR NEW.position > (SELECT position_max) THEN
                 RAISE EXCEPTION 'Strip position provided invalid.';
             ELSIF NEW.position IS NULL THEN

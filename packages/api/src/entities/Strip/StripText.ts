@@ -19,10 +19,10 @@ export default class StripTextEntity extends BaseEntity {
     fontFamily: string;
 
     @Column()
-    fontWeight: number;
+    fontWeight: string;
 
     @Column()
-    fontSize: string;
+    fontSize: number;
 
     @Column()
     stripUid: string;
