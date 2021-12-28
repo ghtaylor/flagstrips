@@ -1,4 +1,4 @@
-import { Flex, Grid, GridItem, useToast } from "@chakra-ui/react";
+import { Flex, Grid, GridItem } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useEditorStore } from "../hooks/useEditor";
@@ -9,8 +9,6 @@ import EditorEditPanel from "./EditorEditPanel";
 import EditorOverviewPanel from "./EditorOverviewPanel";
 
 const EditorPage: React.FC = () => {
-    const toast = useToast();
-
     const router = useRouter();
     const { flagUid } = router.query;
 
@@ -18,22 +16,8 @@ const EditorPage: React.FC = () => {
     const { selectedFlag, setSelectedFlag, selectedStripPosition } = useEditorStore();
 
     useEffect(() => {
-        console.log("flag changed", flag);
         setSelectedFlag(flag);
     }, [flag]);
-
-    useEffect(() => {
-        console.log("selectedFlag changed", selectedFlag);
-    }, [selectedFlag]);
-
-    useEffect(() => {
-        toast({
-            title: "🤔 Need help?",
-            description: "If this is your first time here, take the tour!",
-            position: "top",
-            duration: 10000,
-        });
-    }, []);
 
     //TODO: Can we use the above 'useFlag' hook in the 'useEditor' hook to retrieve the flag? Instead of here.
 

@@ -52,6 +52,7 @@ const EditorEditStripPanel: React.FC = () => {
     const { data: stripImageOptions } = useStripImageOptions();
 
     const [formValues, setFormValues] = useState<EditStripForm>();
+    //Used so that an update is not unnecessarily sent when the form values are first set.
     const [shouldUpdateStrip, setShouldUpdateStrip] = useState(false);
 
     const handleChangeValue = useCallback(<Key extends keyof EditStripForm>(key: Key, value: EditStripForm[Key]) => {
@@ -90,27 +91,27 @@ const EditorEditStripPanel: React.FC = () => {
     );
 
     useEffect(() => {
-        if (selectedFlag && selectedFlag.strips[selectedStripPosition] !== undefined && !formValues) {
-            setShouldUpdateStrip(false);
-            setFormValues(getInitialFormValues(selectedFlag.strips[selectedStripPosition]));
+        if (formValues && shouldUpdateStrip) {
+            const clampedFormValues = clampFormValues(formValues);
+            if (EditStripForm.safeParse(clampedFormValues).success)
+                updateSelectedStrip(getStripPostFromFormValues(clampedFormValues));
         }
-    }, [selectedStripPosition, selectedFlag, formValues]);
+        setShouldUpdateStrip(true);
+    }, [formValues]);
 
     useEffect(() => {
-        if (selectedFlag && selectedFlag.strips[selectedStripPosition] !== undefined) {
+        if (selectedFlag) {
             setShouldUpdateStrip(false);
             setFormValues(getInitialFormValues(selectedFlag.strips[selectedStripPosition]));
         }
     }, [selectedStripPosition]);
 
     useEffect(() => {
-        if (formValues) {
-            const clampedFormValues = clampFormValues(formValues);
-            if (EditStripForm.safeParse(clampedFormValues).success && shouldUpdateStrip)
-                updateSelectedStrip(getStripPostFromFormValues(clampedFormValues));
-            setShouldUpdateStrip(true);
+        if (selectedFlag && selectedFlag.strips[selectedStripPosition] !== undefined && !formValues) {
+            setShouldUpdateStrip(false);
+            setFormValues(getInitialFormValues(selectedFlag.strips[selectedStripPosition]));
         }
-    }, [formValues]);
+    }, [selectedStripPosition, selectedFlag, formValues]);
 
     return formValues ? (
         <>

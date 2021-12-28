@@ -1,4 +1,4 @@
-import { Box, BoxProps } from "@chakra-ui/layout";
+import { SimpleGridProps, SimpleGrid, GridItem } from "@chakra-ui/layout";
 import { ComponentWithAs } from "@chakra-ui/system";
 import { Flag } from "@flagstrips/common";
 import StripComponent from "./Strip";
@@ -8,21 +8,34 @@ interface FlagProps {
     onlyShowStripPosition?: number;
 }
 
-const FlagComponent: ComponentWithAs<"div", BoxProps & FlagProps> = ({ flag, onlyShowStripPosition, ...props }) => {
+const FlagComponent: ComponentWithAs<"div", SimpleGridProps & FlagProps> = ({
+    flag,
+    onlyShowStripPosition,
+    ...props
+}) => {
     return (
-        <Box {...props}>
-            {onlyShowStripPosition !== undefined && flag.strips[onlyShowStripPosition] !== undefined ? (
+        <SimpleGrid {...props}>
+            {flag.strips.map((strip, index) => (
                 <StripComponent
-                    strip={flag.strips[onlyShowStripPosition]}
+                    as={GridItem}
+                    key={strip.uid}
+                    strip={strip}
                     paddingTop={flag.padding.top}
                     paddingRight={flag.padding.right}
                     paddingBottom={flag.padding.bottom}
                     paddingLeft={flag.padding.left}
+                    visibility={
+                        onlyShowStripPosition !== undefined
+                            ? onlyShowStripPosition === index
+                                ? "visible"
+                                : "hidden"
+                            : "visible"
+                    }
+                    gridColumn={1}
+                    gridRow={1}
                 />
-            ) : (
-                flag.strips.map((strip) => <StripComponent strip={strip} key={strip.uid} />)
-            )}
-        </Box>
+            ))}
+        </SimpleGrid>
     );
 };
 

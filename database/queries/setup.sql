@@ -2,6 +2,10 @@
 
 CREATE EXTENSION IF NOT EXISTS "pg_hashids";
 
+CREATE TABLE IF NOT EXISTS trigger_execution (
+    id text NOT NULL UNIQUE PRIMARY KEY
+);
+
 CREATE TABLE IF NOT EXISTS user_role (
     name text NOT NULL UNIQUE,
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -67,7 +71,7 @@ CREATE TABLE IF NOT EXISTS strip (
     uid text NOT NULL UNIQUE,
     user_account_uid text NOT NULL REFERENCES user_account (uid) ON DELETE CASCADE,
     flag_uid text NOT NULL REFERENCES flag (uid) ON DELETE CASCADE,
-    position integer DEFAULT 0,
+    position integer,
     background_color text NOT NULL DEFAULT '#ffffffff',
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -123,7 +127,7 @@ CREATE OR REPLACE FUNCTION insert_flag_children() RETURNS TRIGGER AS $$
             INSERT INTO flag_padding (flag_uid) VALUES (NEW.uid);
             INSERT INTO flag_border (flag_uid) VALUES (NEW.uid);
             INSERT INTO strip (flag_uid, user_account_uid) VALUES (NEW.uid, NEW.user_account_uid);
-            RETURN NEW;
+            RETURN NULL;
         END IF;
     END;
 $$ LANGUAGE plpgsql;
@@ -179,56 +183,58 @@ CREATE OR REPLACE FUNCTION handle_strip_position() RETURNS TRIGGER AS $$
             FOR UPDATE;
     BEGIN
         SELECT max(position) FROM strip INTO position_max WHERE flag_uid = NEW.flag_uid;
-        IF TG_OP = 'INSERT' THEN
-            -- If out-of-bounds, raise exception.
-            IF NEW.position < 0 OR NEW.position > (SELECT position_max + 1) THEN
-                RAISE EXCEPTION 'Strip position provided invalid.';
-            -- If position provided is equal to (max + 1), allow.
-            ELSIF NEW.position = (SELECT position_max + 1) THEN
-                RETURN NEW;
-            ELSIF NEW.position IS NULL THEN
-                NEW.position := (SELECT position_max + 1);
-                RETURN NEW;
-            ELSE
-                FOR row IN c_insert LOOP
-                    UPDATE strip
-                    SET position = row.position + 1
-                    WHERE CURRENT OF c_insert;
-                END LOOP;
-                RETURN NEW;
-            END IF;
 
-        ELSIF TG_OP = 'UPDATE' THEN
-            -- If out-of-bounds, raise exception.
-            IF NEW.position < 0 OR NEW.position > (SELECT position_max) THEN
-                RAISE EXCEPTION 'Strip position provided invalid.';
-            ELSIF NEW.position IS NULL THEN
-                RETURN NEW;
-            ELSIF NEW.position > OLD.position THEN
-                FOR row IN c_update_increase LOOP
+        -- If this particular trigger has recursed, then don't continue with trigger logic and return expected value.
+        IF EXISTS (SELECT 1 FROM trigger_execution te WHERE te.id = COALESCE(NEW.flag_uid, OLD.flag_uid)) THEN
+            RETURN COALESCE(NEW, OLD);
+        ELSE
+            INSERT INTO trigger_execution (id) VALUES (COALESCE(NEW.flag_uid, OLD.flag_uid));
+            IF TG_OP = 'INSERT' THEN
+                -- If out-of-bounds, raise exception.
+                IF NEW.position < 0 OR NEW.position > (SELECT position_max + 1) THEN
+                    RAISE EXCEPTION 'Strip position provided invalid.';
+                ELSIF NEW.position IS NULL AND position_max IS NULL THEN
+                    NEW.position := 0;
+                ELSIF NEW.position IS NULL THEN
+                    NEW.position := (SELECT position_max + 1);
+                ELSIF NEW.position >= 0 AND NEW.position <= position_max THEN
+                    FOR row IN c_insert LOOP
+                        UPDATE strip
+                        SET position = row.position + 1
+                        WHERE CURRENT OF c_insert;
+                    END LOOP;
+                END IF;
+
+            ELSIF TG_OP = 'UPDATE' THEN
+                -- If out-of-bounds, raise exception.
+                IF NEW.position < 0 OR NEW.position > (SELECT position_max) THEN
+                    RAISE EXCEPTION 'Strip position provided invalid.';
+                ELSIF NEW.position > OLD.position THEN
+                    FOR row IN c_update_increase LOOP
+                        UPDATE strip
+                        SET position = row.position - 1
+                        WHERE CURRENT OF c_update_increase;
+                    END LOOP;
+                ELSIF NEW.position < OLD.position THEN
+                    FOR row IN c_update_decrease LOOP
+                        UPDATE strip
+                        SET position = row.position + 1
+                        WHERE CURRENT OF c_update_decrease;
+                    END LOOP;
+                END IF;
+
+            ELSIF TG_OP = 'DELETE' THEN
+                FOR row IN c_delete LOOP
                     UPDATE strip
                     SET position = row.position - 1
-                    WHERE CURRENT OF c_update_increase;
+                    WHERE CURRENT OF c_delete;
                 END LOOP;
-                RETURN NEW;
-            ELSE
-                FOR row IN c_update_decrease LOOP
-                    UPDATE strip
-                    SET position = row.position + 1
-                    WHERE CURRENT OF c_update_decrease;
-                END LOOP;
-                RETURN NEW;
             END IF;
-
-        ELSIF TG_OP = 'DELETE' THEN
-            FOR row IN c_delete LOOP
-                UPDATE strip
-                SET position = row.position - 1
-                WHERE CURRENT OF c_delete;
-            END LOOP;
-            RETURN OLD;
-
         END IF;
+
+        -- Remove trigger execution record now it has completed.
+        DELETE FROM trigger_execution te WHERE te.id = COALESCE(NEW.flag_uid, OLD.flag_uid);
+        RETURN COALESCE(NEW, OLD);
     END;
 $$ LANGUAGE plpgsql;
 
@@ -241,7 +247,6 @@ CREATE TRIGGER handle_strip_position_upsert
 CREATE TRIGGER handle_strip_position_delete
     AFTER DELETE ON strip
     FOR EACH ROW
-    WHEN (pg_trigger_depth() = 0)
     EXECUTE FUNCTION handle_strip_position();
 
 CREATE OR REPLACE FUNCTION update_modified_timestamp() RETURNS TRIGGER AS $$

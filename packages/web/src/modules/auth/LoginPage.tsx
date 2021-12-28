@@ -58,7 +58,7 @@ const LoginPage: React.FC = () => {
                             borderColor="gray.200"
                             borderWidth={1}
                             boxShadow="2xl"
-                            borderRadius={8}
+                            borderRadius="lg"
                         >
                             <Heading size="md">login</Heading>
                             <Formik initialValues={initialFormValues} onSubmit={onFormSubmit}>

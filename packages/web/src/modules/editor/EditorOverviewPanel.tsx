@@ -78,7 +78,7 @@ const EditorOverviewPanel: React.FC = () => {
                 size="lg"
                 onClick={() => createStrip(selectedFlag.uid)}
             >
-                Add Strip
+                add strip
             </StripButton>
         </>
     ) : (

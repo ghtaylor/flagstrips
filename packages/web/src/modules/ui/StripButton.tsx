@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/popover";
 import { ComponentWithAs, ThemingProps, useStyleConfig } from "@chakra-ui/system";
 import { Strip } from "@flagstrips/common";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { FiTrash2 } from "react-icons/fi";
 
 interface StripOverviewProps {
@@ -33,6 +33,7 @@ const StripButton: ComponentWithAs<"button", ButtonProps & ThemingProps & StripO
     ...props
 }) => {
     const styles = useStyleConfig("StripButton", { variant: variant, size });
+    const deleteButtonRef = useRef(null);
 
     useEffect(() => {
         if ((!strip && !children) || (strip && children))
@@ -59,7 +60,7 @@ const StripButton: ComponentWithAs<"button", ButtonProps & ThemingProps & StripO
                 {children}
             </Button>
             {showDelete && (
-                <Popover isLazy placement="bottom-start">
+                <Popover initialFocusRef={deleteButtonRef} isLazy placement="bottom-start">
                     <PopoverTrigger>
                         <IconButton
                             aria-label="delete"
@@ -85,7 +86,7 @@ const StripButton: ComponentWithAs<"button", ButtonProps & ThemingProps & StripO
                         <PopoverHeader fontWeight="bold">Delete strip</PopoverHeader>
                         <PopoverBody>Are you sure you want to delete this strip?</PopoverBody>
                         <PopoverFooter marginStart="auto">
-                            <Button colorScheme="red" size="sm" onClick={() => onDeleteClick()}>
+                            <Button ref={deleteButtonRef} colorScheme="red" size="sm" onClick={() => onDeleteClick()}>
                                 Delete
                             </Button>
                         </PopoverFooter>

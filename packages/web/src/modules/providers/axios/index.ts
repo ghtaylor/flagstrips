@@ -11,6 +11,7 @@ import {
 } from "@flagstrips/common";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import createAuthRefreshInterceptor from "axios-auth-refresh";
+import { handleDates } from "./util";
 
 const defaultAxiosConfig: AxiosRequestConfig = {
     baseURL: "http://localhost:5000/api/",
@@ -29,6 +30,11 @@ apiAxios.interceptors.request.use(async (config) => {
     };
 
     return config;
+});
+
+apiAxios.interceptors.response.use((originalResponse) => {
+    handleDates(originalResponse.data);
+    return originalResponse;
 });
 
 createAuthRefreshInterceptor(apiAxios, async (failedRequest) => {
@@ -55,6 +61,7 @@ export const getUser = async (): Promise<User> => {
 
 export const getFlags = async (): Promise<Flag[]> => {
     const { data }: AxiosResponse<ApiResponseCollection<Flag>> = await apiAxios.get("/me/flags");
+    data.results.sort((a, b) => a.created.getTime() - b.created.getTime());
     return data.results;
 };
 
@@ -65,6 +72,13 @@ export const getFlagByUid = async (uid: string): Promise<Flag> => {
 
 export const patchFlagByUid = async (uid: string, flagPatch: FlagPost): Promise<Flag> => {
     const { data }: AxiosResponse<Flag> = await apiAxios.patch(`/me/flags/${uid}`, flagPatch);
+    return data;
+};
+
+export const deleteFlagByUid = async (uid: string): Promise<void> => apiAxios.delete(`/me/flags/${uid}`);
+
+export const postFlag = async (flagPost?: FlagPost): Promise<Flag> => {
+    const { data }: AxiosResponse<Flag> = await apiAxios.post(`/me/flags`, flagPost);
     return data;
 };
 

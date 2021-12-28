@@ -20,7 +20,7 @@ const Register = (): JSX.Element => (
                         borderColor="gray.200"
                         borderWidth={1}
                         boxShadow="2xl"
-                        borderRadius={8}
+                        borderRadius="lg"
                     >
                         <Heading size="md">register</Heading>
                         <InputGroup marginTop={6}>
