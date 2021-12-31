@@ -38,7 +38,7 @@ export const FlagPost = z.intersection(
         .object({
             border: FlagBorderPost,
             padding: FlagPaddingPost,
-            strips: z.array(StripPost),
+            strips: z.array(z.intersection(z.object({ uid: z.string() }), StripPost)),
         })
 
         .deepPartial(),

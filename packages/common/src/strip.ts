@@ -7,6 +7,11 @@ export const STRIP_TEXT_FONT_SIZE_UPPER_LOWER: UpperLower = {
     lower: 4,
 };
 
+export const STRIP_IMAGE_SIZE_UPPER_LOWER: UpperLower = {
+    upper: 64,
+    lower: 12,
+};
+
 export const StripText = z.object({
     uid: z.string().optional(),
     value: z.string(),
@@ -27,6 +32,8 @@ export const StripImageOption = z.object({
 export const StripImage = z.object({
     uid: z.string().optional(),
     size: z.number(),
+    color: z.string(),
+    position: z.union([z.literal("left"), z.literal("right")]),
     imageOption: StripImageOption,
 });
 

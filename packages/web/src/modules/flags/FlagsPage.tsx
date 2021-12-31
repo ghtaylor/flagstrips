@@ -1,6 +1,6 @@
 import { Container, Heading, SimpleGrid } from "@chakra-ui/react";
 import Head from "next/head";
-import { useCreateFlag, useDeleteFlag, useFlags } from "../hooks/useQueryData";
+import { useCreateFlag, useDeleteFlag, useFlags } from "../providers/useQueryData";
 import MainLayout from "../layouts/MainLayout";
 import AddFlagButton from "../ui/AddFlagButton";
 import FlagOverview from "../ui/FlagOverview";

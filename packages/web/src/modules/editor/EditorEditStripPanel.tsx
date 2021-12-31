@@ -11,44 +11,44 @@ import {
     Select,
     Text,
 } from "@chakra-ui/react";
-import { Strip, StripPost, StripText, STRIP_TEXT_FONT_SIZE_UPPER_LOWER } from "@flagstrips/common";
+import {
+    StripImage,
+    StripText,
+    STRIP_IMAGE_SIZE_UPPER_LOWER,
+    STRIP_TEXT_FONT_SIZE_UPPER_LOWER,
+} from "@flagstrips/common";
 import produce from "immer";
 import { clamp, isFinite } from "lodash";
 import React, { useCallback, useEffect, useState } from "react";
-import { z } from "zod";
-import { useEditorStore } from "../hooks/useEditor";
-import { useStripImageOptions } from "../hooks/useQueryData";
+import { useStripImageOptions } from "../providers/useQueryData";
+import ApplyStylesToAllButton, { ApplyStylesToAllCheckbox } from "../ui/ApplyStylesToAllButton";
 import ColorInput from "../ui/ColorInput";
+import { selectedStripSelector, useEditorStore } from "./useEditor";
+import {
+    ApplyImageStylesChoice,
+    ApplyTextStylesChoice,
+    EditStripForm,
+    getFormValuesByStrip,
+    getStripPostByFormValues,
+} from "./util";
 
-const EditStripForm = z.object({
-    text: StripText.shape.value,
-    textColor: StripText.shape.color,
-    textFontSize: StripText.shape.fontSize,
-    textFontWeight: StripText.shape.fontWeight,
-});
-
-type EditStripForm = z.infer<typeof EditStripForm>;
-
-const getInitialFormValues = (strip: Strip): EditStripForm => ({
-    text: strip.text.value,
-    textColor: strip.text.color,
-    textFontSize: strip.text.fontSize,
-    textFontWeight: strip.text.fontWeight,
-});
-
-const getStripPostFromFormValues = (formValues: EditStripForm): StripPost => ({
-    text: {
-        value: formValues.text,
-        fontSize: formValues.textFontSize,
-        fontWeight: formValues.textFontWeight,
-        color: formValues.textColor,
-    },
-});
-
-const fontWeights = StripText.shape.fontWeight.options.map(({ value }) => value);
+export const fontWeights = StripText.shape.fontWeight.options.map(({ value }) => value);
+export const imagePositions = StripImage.shape.position.options.map(({ value }) => value);
+export const applyTextStylesCheckboxes: ApplyStylesToAllCheckbox<ApplyTextStylesChoice>[] = [
+    { text: "color", value: "color" },
+    { text: "font size", value: "fontSize" },
+    { text: "font family", value: "fontFamily" },
+    { text: "font weight", value: "fontWeight" },
+];
+export const applyImageStylesCheckboxes: ApplyStylesToAllCheckbox<ApplyImageStylesChoice>[] = [
+    { text: "color", value: "color" },
+    { text: "size", value: "size" },
+    { text: "position", value: "position" },
+];
 
 const EditorEditStripPanel: React.FC = () => {
-    const { selectedFlag, selectedStripPosition, updateSelectedStrip } = useEditorStore();
+    const { updateSelectedStrip, selectedStripUid, applyStylesToAllStrips } = useEditorStore();
+    const selectedStrip = useEditorStore(selectedStripSelector);
     const { data: stripImageOptions } = useStripImageOptions();
 
     const [formValues, setFormValues] = useState<EditStripForm>();
@@ -86,6 +86,11 @@ const EditorEditStripPanel: React.FC = () => {
                 STRIP_TEXT_FONT_SIZE_UPPER_LOWER.lower,
                 STRIP_TEXT_FONT_SIZE_UPPER_LOWER.upper,
             ),
+            imageSize: clamp(
+                formValues.imageSize,
+                STRIP_IMAGE_SIZE_UPPER_LOWER.lower,
+                STRIP_IMAGE_SIZE_UPPER_LOWER.upper,
+            ),
         }),
         [formValues],
     );
@@ -94,31 +99,34 @@ const EditorEditStripPanel: React.FC = () => {
         if (formValues && shouldUpdateStrip) {
             const clampedFormValues = clampFormValues(formValues);
             if (EditStripForm.safeParse(clampedFormValues).success)
-                updateSelectedStrip(getStripPostFromFormValues(clampedFormValues));
+                updateSelectedStrip(getStripPostByFormValues(clampedFormValues));
         }
         setShouldUpdateStrip(true);
     }, [formValues]);
 
     useEffect(() => {
-        if (selectedFlag) {
+        if (selectedStripUid && selectedStrip) {
             setShouldUpdateStrip(false);
-            setFormValues(getInitialFormValues(selectedFlag.strips[selectedStripPosition]));
+            setFormValues(getFormValuesByStrip(selectedStrip));
         }
-    }, [selectedStripPosition]);
+    }, [selectedStripUid]);
 
     useEffect(() => {
-        if (selectedFlag && selectedFlag.strips[selectedStripPosition] !== undefined && !formValues) {
+        if (selectedStrip && !formValues) {
             setShouldUpdateStrip(false);
-            setFormValues(getInitialFormValues(selectedFlag.strips[selectedStripPosition]));
+            setFormValues(getFormValuesByStrip(selectedStrip));
+        } else if (!selectedStrip && formValues) {
+            setShouldUpdateStrip(true);
+            setFormValues(undefined);
         }
-    }, [selectedStripPosition, selectedFlag, formValues]);
+    }, [selectedStrip, formValues]);
 
     return formValues ? (
         <>
             <Text textStyle="editorHeader" marginBottom={1}>
                 text
             </Text>
-            <Grid templateColumns="64px auto 80px" gridGap={1} alignItems="end" marginBottom={3}>
+            <Grid templateColumns="64px auto 80px" gridGap={1} alignItems="end">
                 <GridItem colSpan={2}>
                     <Input size="xs" value={formValues.text} onChange={(e) => handleChangeEvent("text", e)} />
                 </GridItem>
@@ -158,18 +166,70 @@ const EditorEditStripPanel: React.FC = () => {
                 </GridItem>
             </Grid>
 
+            <ApplyStylesToAllButton
+                checkboxes={applyTextStylesCheckboxes}
+                onApply={(values) => {
+                    const choices = values as ApplyTextStylesChoice[];
+                    applyStylesToAllStrips({ applyTo: "text", choices });
+                }}
+                marginBottom={3}
+            />
+
             {stripImageOptions && (
                 <>
                     <Text textStyle="editorHeader" marginBottom={1}>
-                        icon
+                        image
                     </Text>
-                    <Select size="xs">
-                        {stripImageOptions.map(({ uid, name, uri }) => (
-                            <option key={uid} value={uid}>
-                                {name}
-                            </option>
-                        ))}
-                    </Select>
+                    <Grid templateColumns="64px auto 80px" gridGap={1} alignItems="end">
+                        <GridItem colSpan={2}>
+                            <Select size="xs">
+                                {stripImageOptions.map(({ uid, name, uri }) => (
+                                    <option key={uid} value={uid}>
+                                        {name}
+                                    </option>
+                                ))}
+                            </Select>
+                        </GridItem>
+                        <GridItem colSpan={1}>
+                            <ColorInput
+                                size="xs"
+                                value={formValues.imageColor}
+                                onHexChange={(hex) => handleChangeValue("imageColor", hex)}
+                            />
+                        </GridItem>
+                        <GridItem>
+                            <NumberInput
+                                size="xs"
+                                min={STRIP_IMAGE_SIZE_UPPER_LOWER.lower}
+                                max={STRIP_IMAGE_SIZE_UPPER_LOWER.upper}
+                                value={formValues.imageSize ? formValues.imageSize : ""}
+                                onChange={(_, value) => handleChangeValue("imageSize", value)}
+                            >
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                </NumberInputStepper>
+                            </NumberInput>
+                        </GridItem>
+                        <GridItem colSpan={2}>
+                            <Select size="xs" onChange={(e) => handleChangeEvent("imagePosition", e)}>
+                                {imagePositions.map((imagePosition) => (
+                                    <option key={imagePosition} value={imagePosition}>
+                                        {imagePosition}
+                                    </option>
+                                ))}
+                            </Select>
+                        </GridItem>
+                    </Grid>
+                    <ApplyStylesToAllButton
+                        checkboxes={applyImageStylesCheckboxes}
+                        onApply={(values) => {
+                            const choices = values as ApplyImageStylesChoice[];
+                            applyStylesToAllStrips({ applyTo: "image", choices });
+                        }}
+                        marginBottom={3}
+                    />
                 </>
             )}
 

@@ -1,6 +1,6 @@
 import { Flag, FlagPost, StripImageOption } from "@flagstrips/common";
 import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryOptions, UseQueryResult } from "react-query";
-import { deleteFlagByUid, getFlagByUid, getFlags, getStripImageOptions, postFlag } from "../providers/axios";
+import { deleteFlagByUid, getFlagByUid, getFlags, getStripImageOptions, postFlag } from "./axios";
 
 export const FLAG_QUERY_KEY = "flags";
 export const STRIP_IMAGE_OPTION_QUERY_KEY = "strip_image_options";

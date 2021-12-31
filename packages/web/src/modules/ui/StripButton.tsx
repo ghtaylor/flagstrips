@@ -1,7 +1,11 @@
-import { Button, ButtonProps, IconButton } from "@chakra-ui/button";
-import { Image } from "@chakra-ui/image";
-import { Box, Text } from "@chakra-ui/layout";
 import {
+    Box,
+    Button,
+    ButtonProps,
+    ComponentWithAs,
+    Heading,
+    IconButton,
+    Image,
     Popover,
     PopoverArrow,
     PopoverBody,
@@ -10,8 +14,10 @@ import {
     PopoverFooter,
     PopoverHeader,
     PopoverTrigger,
-} from "@chakra-ui/popover";
-import { ComponentWithAs, ThemingProps, useStyleConfig } from "@chakra-ui/system";
+    Text,
+    ThemingProps,
+    useStyleConfig,
+} from "@chakra-ui/react";
 import { Strip } from "@flagstrips/common";
 import { useEffect, useRef } from "react";
 import { FiTrash2 } from "react-icons/fi";
@@ -83,11 +89,15 @@ const StripButton: ComponentWithAs<"button", ButtonProps & ThemingProps & StripO
                     <PopoverContent>
                         <PopoverArrow />
                         <PopoverCloseButton />
-                        <PopoverHeader fontWeight="bold">Delete strip</PopoverHeader>
-                        <PopoverBody>Are you sure you want to delete this strip?</PopoverBody>
-                        <PopoverFooter marginStart="auto">
+                        <PopoverHeader>
+                            <Heading size="xs">delete strip</Heading>
+                        </PopoverHeader>
+                        <PopoverBody>
+                            <Text size="sm">are you sure you want to delete this strip?</Text>
+                        </PopoverBody>
+                        <PopoverFooter display="flex" justifyContent="flex-end">
                             <Button ref={deleteButtonRef} colorScheme="red" size="sm" onClick={() => onDeleteClick()}>
-                                Delete
+                                delete
                             </Button>
                         </PopoverFooter>
                     </PopoverContent>

@@ -92,9 +92,14 @@ const theme = extendTheme(withDefaultColorScheme({ colorScheme: "green" }), {
         },
         editorCaption: {
             fontSize: 12,
-            fontWeight: "bold",
+            fontWeight: 700,
             color: "gray.500",
             letterSpacing: "2%",
+        },
+        editorAction: {
+            fontSize: 10,
+            fontWeight: 600,
+            color: "blue.500",
         },
     },
     styles: {

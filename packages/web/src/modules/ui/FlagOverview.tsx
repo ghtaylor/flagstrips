@@ -111,9 +111,9 @@ const FlagOverview: ComponentWithAs<"article", FlexProps & FlagOverviewProps> = 
                 >
                     <ModalOverlay />
                     <ModalContent>
-                        <ModalHeader>Are you sure?</ModalHeader>
+                        <ModalHeader>are you sure?</ModalHeader>
                         <ModalCloseButton />
-                        <ModalBody paddingY={0}>This flag will be permanently deleted.</ModalBody>
+                        <ModalBody paddingY={0}>this flag will be permanently deleted.</ModalBody>
                         <ModalFooter>
                             <Button
                                 ref={deleteButtonRef}

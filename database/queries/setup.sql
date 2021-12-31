@@ -97,9 +97,13 @@ CREATE TABLE IF NOT EXISTS strip_image (
     strip_uid text NOT NULL UNIQUE REFERENCES strip (uid) ON DELETE CASCADE,
     image_option_uid text NOT NULL DEFAULT default_strip_image_option_uid() REFERENCES strip_image_option (uid),
     size integer NOT NULL DEFAULT 32,
+    color text NOT NULL DEFAULT '#000000FF',
+    position text NOT NULL DEFAULT 'left',
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (id, uid)
+    PRIMARY KEY (id, uid),
+    CHECK (color ~* '^#(?:[0-9a-fA-F]{3,4}){1,2}$'),
+    CHECK (position ~* '^(left|right)$')
 );
 
 CREATE TABLE IF NOT EXISTS strip_text (

@@ -1,6 +1,5 @@
 import { ApiResponseCollection, Flag, FlagPost } from "@flagstrips/common";
 import { NextFunction, Request, Response } from "express";
-import { omit } from "lodash";
 import { forbiddenResourceAccessError, unauthorizedError } from "../errors";
 import FlagService from "../services/flag.service";
 
@@ -60,8 +59,7 @@ export default class FlagController {
         if (!req.flag) return next(forbiddenResourceAccessError("Flag"));
 
         try {
-            let flagPost = FlagPost.parse(req.body);
-            flagPost = omit(flagPost, "strips");
+            const flagPost = FlagPost.parse(req.body);
             const flag = await FlagService.updateFlag(flagPost, req.flag.uid);
             return res.status(200).json(flag);
         } catch (error) {

@@ -1,8 +1,8 @@
 import { Flex, Grid, GridItem } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { useEditorStore } from "../hooks/useEditor";
-import { useFlag } from "../hooks/useQueryData";
+import { selectedStripSelector, useEditorStore } from "./useEditor";
+import { useFlag } from "../providers/useQueryData";
 import MainLayout from "../layouts/MainLayout";
 import FlagComponent from "../ui/Flag";
 import EditorEditPanel from "./EditorEditPanel";
@@ -13,7 +13,8 @@ const EditorPage: React.FC = () => {
     const { flagUid } = router.query;
 
     const { data: flag } = useFlag(flagUid as string, { enabled: typeof flagUid === "string" });
-    const { selectedFlag, setSelectedFlag, selectedStripPosition } = useEditorStore();
+    const { selectedFlag, setSelectedFlag } = useEditorStore();
+    const selectedStrip = useEditorStore(selectedStripSelector);
 
     useEffect(() => {
         setSelectedFlag(flag);
@@ -43,8 +44,8 @@ const EditorPage: React.FC = () => {
                         <EditorOverviewPanel />
                     </GridItem>
                     <GridItem colSpan={1} display="grid" placeItems="center">
-                        {selectedFlag && (
-                            <FlagComponent flag={selectedFlag} onlyShowStripPosition={selectedStripPosition} />
+                        {selectedFlag && selectedStrip && (
+                            <FlagComponent flag={selectedFlag} onlyShowStripPosition={selectedStrip.position} />
                         )}
                     </GridItem>
                     <GridItem

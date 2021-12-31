@@ -5,19 +5,13 @@ import { useEffect, useState } from "react";
 import FocusLock from "react-focus-lock";
 import { BiPencil } from "react-icons/bi";
 import { HiPlus } from "react-icons/hi";
-import { useEditorStore } from "../hooks/useEditor";
+import { useEditorStore, selectedStripSelector } from "./useEditor";
 import StripButton from "../ui/StripButton";
 
 const EditorOverviewPanel: React.FC = () => {
-    const {
-        selectedFlag,
-        selectedStripPosition,
-        updateSelectedFlag,
-        createStrip,
-        deleteStrip,
-        setSelectedStripPosition,
-        loading,
-    } = useEditorStore();
+    const { selectedFlag, setSelectedStripUid, updateSelectedFlag, createStrip, deleteStrip, loading } =
+        useEditorStore();
+    const selectedStrip = useEditorStore(selectedStripSelector);
 
     const [newFlagTitle, setNewFlagTitle] = useState<string | undefined>();
     const { isOpen: isEditingFlagTitle, onOpen: onEditFlagTitle, onClose: onStopEditFlagTitle } = useDisclosure();
@@ -65,8 +59,8 @@ const EditorOverviewPanel: React.FC = () => {
                     size="lg"
                     marginBottom={2}
                     boxShadow="xl"
-                    variant={selectedStripPosition === strip.position ? "selected" : "base"}
-                    onClick={() => setSelectedStripPosition(strip.position)}
+                    variant={selectedStrip?.position === strip.position ? "selected" : "base"}
+                    onClick={() => setSelectedStripUid(strip.uid)}
                     onDeleteClick={() => deleteStrip(strip.uid)}
                 />
             ))}

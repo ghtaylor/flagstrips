@@ -1,9 +1,10 @@
 import { Flag, FlagPost } from "@flagstrips/common";
 import { omit, isEmpty, sortBy } from "lodash";
+import asyncPool from "tiny-async-pool";
 import FlagEntity from "../entities/Flag";
 import FlagBorderEntity from "../entities/Flag/FlagBorder";
 import FlagPaddingEntity from "../entities/Flag/FlagPadding";
-import { transformStripEntityToStrip } from "./strip.service";
+import StripService, { transformStripEntityToStrip } from "./strip.service";
 
 const relations = ["border", "padding", "strips", "strips.text", "strips.image", "strips.image.imageOption"];
 
@@ -40,11 +41,16 @@ export default class FlagService {
     }
 
     static async updateFlag(flagPost: FlagPost, uid: string): Promise<Flag> {
-        const { padding, border, ...flag } = flagPost;
+        const { padding, border, strips, ...flag } = flagPost;
 
         if (!isEmpty(flag)) await FlagEntity.update({ uid }, flag);
         if (padding && !isEmpty(padding)) await FlagPaddingEntity.update({ flagUid: uid }, padding);
         if (border && !isEmpty(border)) await FlagBorderEntity.update({ flagUid: uid }, border);
+        if (strips && !isEmpty(strips))
+            await asyncPool(3, strips, async (strip) => {
+                const stripPost = omit(strip, "uid");
+                await StripService.updateStrip(stripPost, strip.uid);
+            });
 
         const flagEntity = await FlagEntity.findOneOrFail({ where: { uid }, relations });
 

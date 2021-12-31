@@ -12,7 +12,7 @@ if (!(ACCESS_TOKEN_SECRET && REFRESH_TOKEN_SECRET)) {
 export const hashPassword = async (password: string): Promise<string> => bcrypt.hash(password, await bcrypt.genSalt());
 
 export const getAccessToken = (payload: AuthLoginJWTPayload): string =>
-    sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "1m" });
+    sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "10m" });
 
 export const getRefreshToken = (payload: AuthLoginJWTPayload): string =>
     sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: "7d" });

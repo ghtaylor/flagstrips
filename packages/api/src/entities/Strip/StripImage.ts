@@ -14,6 +14,12 @@ export default class StripImageEntity extends BaseEntity {
     size: number;
 
     @Column()
+    color: string;
+
+    @Column()
+    position: string;
+
+    @Column()
     stripUid: string;
 
     @OneToOne(() => StripEntity, (strip) => strip.image)

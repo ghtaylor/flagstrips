@@ -1,5 +1,7 @@
 // import { RuntypeBase } from "runtypes/lib/runtype";
 
+import { Strip } from ".";
+
 // export const getLeafPathsOfRecord = (
 //     runtype: RuntypeBase<unknown>,
 //     parentKey: string | undefined = undefined,
@@ -31,3 +33,6 @@
 //     }
 //     return paths;
 // };
+
+export const getStripIndexByUid = (strips: Strip[], uid: string): number =>
+    strips.findIndex((strip) => strip.uid === uid);
