@@ -1,16 +1,24 @@
-import { useDisclosure } from "@chakra-ui/hooks";
-import { Input } from "@chakra-ui/input";
-import { Box, Flex, Heading, Text } from "@chakra-ui/layout";
+import { useDisclosure, Input, Box, Flex, Heading, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import FocusLock from "react-focus-lock";
 import { BiPencil } from "react-icons/bi";
 import { HiPlus } from "react-icons/hi";
+import { Strip } from "@flagstrips/common";
+import { Reorder } from "framer-motion";
 import { useEditorStore, selectedStripSelector } from "./useEditor";
 import StripButton from "../ui/StripButton";
 
 const EditorOverviewPanel: React.FC = () => {
-    const { selectedFlag, setSelectedStripUid, updateSelectedFlag, createStrip, deleteStrip, loading } =
-        useEditorStore();
+    const {
+        selectedFlag,
+        setSelectedStripUid,
+        updateSelectedFlag,
+        createStrip,
+        deleteStrip,
+        setDraggingStripUid,
+        reorderStrips,
+        loading,
+    } = useEditorStore();
     const selectedStrip = useEditorStore(selectedStripSelector);
 
     const [newFlagTitle, setNewFlagTitle] = useState<string | undefined>();
@@ -51,19 +59,33 @@ const EditorOverviewPanel: React.FC = () => {
                 )}
             </Box>
 
-            {selectedFlag.strips.map((strip) => (
-                <StripButton
-                    key={strip.uid}
-                    strip={strip}
-                    showDelete
-                    size="lg"
-                    marginBottom={2}
-                    boxShadow="xl"
-                    variant={selectedStrip?.position === strip.position ? "selected" : "base"}
-                    onClick={() => setSelectedStripUid(strip.uid)}
-                    onDeleteClick={() => deleteStrip(strip.uid)}
-                />
-            ))}
+            <Reorder.Group
+                axis="y"
+                layoutScroll
+                values={selectedFlag.strips}
+                onReorder={(strips: Strip[]) => reorderStrips(strips)}
+            >
+                {selectedFlag.strips.map((strip) => (
+                    <Reorder.Item
+                        value={strip}
+                        key={strip.uid}
+                        onDragStart={() => setDraggingStripUid(strip.uid)}
+                        onDragEnd={() => setDraggingStripUid(undefined)}
+                    >
+                        <StripButton
+                            strip={strip}
+                            showDelete
+                            size="lg"
+                            marginBottom={2}
+                            boxShadow="xl"
+                            variant={selectedStrip?.position === strip.position ? "selected" : "base"}
+                            onClick={() => setSelectedStripUid(strip.uid)}
+                            onDeleteClick={() => deleteStrip(strip.uid)}
+                        />
+                    </Reorder.Item>
+                ))}
+            </Reorder.Group>
+
             <StripButton
                 showDelete={false}
                 leftIcon={<HiPlus />}

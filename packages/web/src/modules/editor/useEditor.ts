@@ -1,11 +1,11 @@
 import {
     Flag,
     FlagPost,
-    StripPost,
     getStripIndexByUid,
     Strip,
-    StripTextPost,
     StripImagePost,
+    StripPost,
+    StripTextPost,
 } from "@flagstrips/common";
 import produce from "immer";
 import { cloneDeep, debounce, merge, omit, pick } from "lodash";
@@ -21,6 +21,7 @@ interface EditorLoadingState {
 interface EditorState {
     selectedFlag?: Flag;
     selectedStripUid?: string;
+    draggingStripUid?: string;
     loading: EditorLoadingState;
 }
 
@@ -31,12 +32,12 @@ const initialState: EditorState = {
 };
 
 const debouncedPatchFlagByUid = debounce((uid: string, flag: FlagPost) => {
-    console.log("Submitting to API patch flag");
+    console.log("Submitting to API patch flag", uid, flag);
     patchFlagByUid(uid, flag);
 }, 1500);
 
 const debouncedPatchStripByUid = debounce((uid: string, strip: StripPost) => {
-    console.log("Submitting to API patch strip");
+    console.log("Submitting to API patch strip", uid, strip);
     patchStripByUid(uid, strip);
 }, 1500);
 
@@ -69,16 +70,67 @@ export const useEditorStore = create(
                 );
             }
         },
-        updateSelectedStrip: (stripPost: StripPost) => {
-            const { selectedFlag, selectedStripUid } = get();
-            if (selectedFlag && selectedStripUid) {
-                const stripIndex = getStripIndexByUid(selectedFlag.strips, selectedStripUid);
-                const selectedStrip = cloneDeep(selectedFlag.strips[stripIndex]);
-                debouncedPatchStripByUid(selectedStripUid, stripPost);
+        updateStrip: (stripUid: string, stripPost: StripPost) => {
+            const { selectedFlag } = get();
+
+            if (selectedFlag) {
+                // If a new strip position was provided and it was out-of-bounds, raise exception.
+                // Code will never cause this but check is worthwhile.
+                if (
+                    stripPost.position &&
+                    (stripPost.position < 0 ||
+                        stripPost.position > selectedFlag.strips[selectedFlag.strips.length - 1].position)
+                )
+                    throw new Error("Strip position provided is out of bounds.");
+
+                const stripIndex = getStripIndexByUid(selectedFlag.strips, stripUid);
+                const strip = selectedFlag.strips[stripIndex];
+                // debouncedPatchStripByUid(stripUid, stripPost);
                 return set((state) =>
                     produce(state, (draftState) => {
+                        // If position has been updated, other strips positions need to be changed.
+                        if (stripPost.position) {
+                            /* eslint-disable @typescript-eslint/no-non-null-assertion */
+                            // If new position is an increase compared to its current position.
+                            if (stripPost.position > strip.position) {
+                                const newStrips = selectedFlag.strips
+                                    .map((_strip) => {
+                                        if (_strip.uid === strip.uid)
+                                            return merge({}, _strip, { position: stripPost.position });
+                                        else if (
+                                            _strip.position <= stripPost.position! &&
+                                            _strip.position > strip.position
+                                        )
+                                            return merge({}, _strip, { position: _strip.position - 1 });
+                                        else return _strip;
+                                    })
+                                    .sort((a, b) => a.position - b.position);
+
+                                if (draftState.selectedFlag) draftState.selectedFlag.strips = newStrips;
+                            }
+                            // If new position is a decrease compared to its current position.
+                            else if (stripPost.position < strip.position) {
+                                const newStrips = selectedFlag.strips
+                                    .map((_strip) => {
+                                        if (_strip.uid === strip.uid)
+                                            return merge({}, _strip, { position: stripPost.position });
+                                        else if (
+                                            _strip.position >= stripPost.position! &&
+                                            _strip.position < strip.position
+                                        )
+                                            return merge({}, _strip, { position: _strip.position + 1 });
+                                        else return _strip;
+                                    })
+                                    .sort((a, b) => a.position - b.position);
+
+                                if (draftState.selectedFlag) draftState.selectedFlag.strips = newStrips;
+                            }
+                            /* eslint-enable @typescript-eslint/no-non-null-assertion */
+                        }
+
+                        // Finally, update strip with all stripPost properties.
                         if (draftState.selectedFlag)
-                            draftState.selectedFlag.strips[stripIndex] = merge({}, selectedStrip, stripPost);
+                            draftState.selectedFlag.strips[stripIndex] = merge({}, strip, stripPost);
                     }),
                 );
             }
@@ -139,6 +191,28 @@ export const useEditorStore = create(
                         }
                     }),
                 );
+            }
+        },
+        setDraggingStripUid: (uid?: string) =>
+            set((state) =>
+                produce(state, (draftState) => {
+                    draftState.draggingStripUid = uid;
+                }),
+            ),
+        reorderStrips: (reorderedStrips: Strip[]) => {
+            const { selectedFlag, draggingStripUid } = get();
+            if (!draggingStripUid) throw new Error("lastDraggedStripUid must be set before reorder is called.");
+
+            if (selectedFlag) {
+                const newStrips = reorderedStrips.map((strip, index) => merge({}, strip, { position: index }));
+                set((state) =>
+                    produce(state, (draftState) => {
+                        if (draftState.selectedFlag) draftState.selectedFlag.strips = newStrips;
+                    }),
+                );
+
+                const changedStripIndex = reorderedStrips.findIndex(({ uid }) => uid === draggingStripUid);
+                debouncedPatchStripByUid(reorderedStrips[changedStripIndex].uid, { position: changedStripIndex });
             }
         },
         applyStylesToAllStrips: (applyAllStyles: ApplyAllStyles) => {

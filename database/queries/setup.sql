@@ -212,7 +212,7 @@ CREATE OR REPLACE FUNCTION handle_strip_position() RETURNS TRIGGER AS $$
             ELSIF TG_OP = 'UPDATE' THEN
                 -- If out-of-bounds, raise exception.
                 IF NEW.position < 0 OR NEW.position > (SELECT position_max) THEN
-                    RAISE EXCEPTION 'Strip position provided invalid.';
+                    RAISE EXCEPTION 'Strip position provided is out of bounds.';
                 ELSIF NEW.position > OLD.position THEN
                     FOR row IN c_update_increase LOOP
                         UPDATE strip

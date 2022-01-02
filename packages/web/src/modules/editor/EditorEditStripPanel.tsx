@@ -47,7 +47,7 @@ export const applyImageStylesCheckboxes: ApplyStylesToAllCheckbox<ApplyImageStyl
 ];
 
 const EditorEditStripPanel: React.FC = () => {
-    const { updateSelectedStrip, selectedStripUid, applyStylesToAllStrips } = useEditorStore();
+    const { updateStrip, selectedStripUid, applyStylesToAllStrips } = useEditorStore();
     const selectedStrip = useEditorStore(selectedStripSelector);
     const { data: stripImageOptions } = useStripImageOptions();
 
@@ -96,10 +96,10 @@ const EditorEditStripPanel: React.FC = () => {
     );
 
     useEffect(() => {
-        if (formValues && shouldUpdateStrip) {
+        if (formValues && shouldUpdateStrip && selectedStrip) {
             const clampedFormValues = clampFormValues(formValues);
             if (EditStripForm.safeParse(clampedFormValues).success)
-                updateSelectedStrip(getStripPostByFormValues(clampedFormValues));
+                updateStrip(selectedStrip.uid, getStripPostByFormValues(clampedFormValues));
         }
         setShouldUpdateStrip(true);
     }, [formValues]);
