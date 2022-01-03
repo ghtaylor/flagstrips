@@ -4,13 +4,13 @@ import stripRouter from "./strip.route";
 
 const router = Router();
 
-router.param("flagId", FlagController.applyFlagToRequestByIdParam);
+router.param("flagUid", FlagController.applyFlagToRequestByUidParam);
 router.get("/", FlagController.getFlags);
-router.get("/:flagId", FlagController.getFlagById);
+router.get("/:flagUid", FlagController.getFlagByUid);
 router.post("/", FlagController.postFlag);
-router.patch("/:flagId", FlagController.patchFlag);
-router.delete("/:flagId", FlagController.deleteFlag);
+router.patch("/:flagUid", FlagController.patchFlag);
+router.delete("/:flagUid", FlagController.deleteFlag);
 
-router.use("/:flagId/strips", stripRouter);
+router.use("/:flagUid/strips", stripRouter);
 
 export default router;

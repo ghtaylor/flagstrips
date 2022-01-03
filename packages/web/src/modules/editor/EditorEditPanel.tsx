@@ -1,5 +1,5 @@
 import { Tabs, TabList, TabPanels, TabPanel, Tab } from "@chakra-ui/react";
-import EditorEditBannerPanel from "./EditorEditBannerPanel";
+import EditorEditFlagPanel from "./EditorEditFlagPanel";
 import EditorEditStripPanel from "./EditorEditStripPanel";
 
 const EditorEditPanel: React.FC = () => {
@@ -14,7 +14,7 @@ const EditorEditPanel: React.FC = () => {
                     <EditorEditStripPanel />
                 </TabPanel>
                 <TabPanel padding={0}>
-                    <EditorEditBannerPanel />
+                    <EditorEditFlagPanel />
                 </TabPanel>
             </TabPanels>
         </Tabs>

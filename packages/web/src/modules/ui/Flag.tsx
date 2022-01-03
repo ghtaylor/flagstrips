@@ -20,10 +20,10 @@ const FlagComponent: ComponentWithAs<"div", SimpleGridProps & FlagProps> = ({
                     as={GridItem}
                     key={strip.uid}
                     strip={strip}
-                    paddingTop={flag.padding.top}
-                    paddingRight={flag.padding.right}
-                    paddingBottom={flag.padding.bottom}
-                    paddingLeft={flag.padding.left}
+                    paddingTop={`${flag.padding.top}px`}
+                    paddingRight={`${flag.padding.right}px`}
+                    paddingBottom={`${flag.padding.bottom}px`}
+                    paddingLeft={`${flag.padding.left}px`}
                     visibility={
                         onlyShowStripPosition !== undefined
                             ? onlyShowStripPosition === index

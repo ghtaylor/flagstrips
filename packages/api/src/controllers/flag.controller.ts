@@ -4,7 +4,7 @@ import { forbiddenResourceAccessError, unauthorizedError } from "../errors";
 import FlagService from "../services/flag.service";
 
 export default class FlagController {
-    static async applyFlagToRequestByIdParam(
+    static async applyFlagToRequestByUidParam(
         req: Request,
         _res: Response,
         next: NextFunction,
@@ -12,9 +12,7 @@ export default class FlagController {
     ): Promise<Response | void> {
         try {
             const flag = await FlagService.getFlagByUid(uid, req.authenticatedUser?.uid);
-            if (flag) {
-                req.flag = flag;
-            }
+            req.flag = flag;
             return next();
         } catch (error) {
             return next(error);
@@ -38,7 +36,7 @@ export default class FlagController {
         }
     }
 
-    static async getFlagById(req: Request, res: Response<Flag>): Promise<Response | void> {
+    static async getFlagByUid(req: Request, res: Response<Flag>): Promise<Response | void> {
         return req.flag ? res.status(200).json(req.flag) : res.status(204).send();
     }
 

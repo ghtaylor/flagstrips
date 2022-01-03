@@ -4,7 +4,7 @@ import { forbiddenResourceAccessError, parentResourceInvalidError, unauthorizedE
 import StripService from "../services/strip.service";
 
 export default class StripController {
-    static async applyStripToRequestByIdParam(
+    static async applyStripToRequestByUidParam(
         req: Request,
         _res: Response,
         next: NextFunction,
@@ -12,9 +12,22 @@ export default class StripController {
     ): Promise<Response | void> {
         try {
             const strip = await StripService.getStripByUid(uid, req.authenticatedUser?.uid, req.flag?.uid);
-            if (strip) {
-                req.strip = strip;
-            }
+            req.strip = strip;
+            return next();
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    static async applyStripImageOptionToRequestByUidParam(
+        req: Request,
+        _res: Response,
+        next: NextFunction,
+        uid: string,
+    ): Promise<Response | void> {
+        try {
+            const stripImageOption = await StripService.getStripImageOptionByUid(uid);
+            req.stripImageOption = stripImageOption;
             return next();
         } catch (error) {
             return next(error);
@@ -38,7 +51,7 @@ export default class StripController {
         }
     }
 
-    static async getStripById(req: Request, res: Response<Strip>): Promise<Response | void> {
+    static async getStripByUid(req: Request, res: Response<Strip>): Promise<Response | void> {
         return req.strip ? res.status(200).json(req.strip) : res.status(204).send();
     }
 
@@ -91,5 +104,9 @@ export default class StripController {
         } catch (error) {
             return next(error);
         }
+    }
+
+    static async getStripImageOptionByUid(req: Request, res: Response<StripImageOption>): Promise<Response | void> {
+        return req.stripImageOption ? res.status(200).json(req.stripImageOption) : res.status(204).send();
     }
 }

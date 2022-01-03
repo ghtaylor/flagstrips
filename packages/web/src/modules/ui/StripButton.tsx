@@ -21,6 +21,7 @@ import {
 import { Strip } from "@flagstrips/common";
 import { useEffect, useRef } from "react";
 import { FiTrash2 } from "react-icons/fi";
+import { useStripImageOption } from "../providers/useQueryData";
 
 interface StripOverviewProps {
     strip?: Strip;
@@ -41,6 +42,8 @@ const StripButton: ComponentWithAs<"button", ButtonProps & ThemingProps & StripO
     const styles = useStyleConfig("StripButton", { variant: variant, size });
     const deleteButtonRef = useRef(null);
 
+    const { data: imageOption } = useStripImageOption(strip?.image.optionUid);
+
     useEffect(() => {
         if ((!strip && !children) || (strip && children))
             throw new Error("Must provide one of strip or children props, not both or none.");
@@ -51,7 +54,7 @@ const StripButton: ComponentWithAs<"button", ButtonProps & ThemingProps & StripO
             <Button justifyContent="start" sx={styles} {...props}>
                 {strip && (
                     <>
-                        <Image height={6} width={6} marginEnd={2} src={strip.image.imageOption.uri} />
+                        {imageOption && <Image height={6} width={6} marginEnd={2} src={imageOption.uri} />}
                         <Text
                             size="xs"
                             fontWeight="medium"

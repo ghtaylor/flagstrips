@@ -35,4 +35,10 @@ export const useDeleteFlag = (): UseMutationResult<void, Error, string, unknown>
 };
 
 export const useStripImageOptions = (): UseQueryResult<StripImageOption[], Error> =>
-    useQuery(STRIP_IMAGE_OPTION_QUERY_KEY, getStripImageOptions);
+    useQuery(STRIP_IMAGE_OPTION_QUERY_KEY, getStripImageOptions, { staleTime: Infinity });
+
+export const useStripImageOption = (uid?: string) =>
+    useQuery(STRIP_IMAGE_OPTION_QUERY_KEY, getStripImageOptions, {
+        select: (stripImageOptions) => stripImageOptions.find((stripImageOption) => stripImageOption.uid === uid),
+        staleTime: Infinity,
+    });

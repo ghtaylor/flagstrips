@@ -5,7 +5,7 @@ import StripImageEntity from "../entities/Strip/StripImage";
 import StripImageOptionEntity from "../entities/Strip/StripImageOption";
 import StripTextEntity from "../entities/Strip/StripText";
 
-const relations = ["flag", "text", "image", "image.imageOption"];
+const relations = ["flag", "text", "image"];
 
 export const transformStripEntityToStrip = (stripEntity: StripEntity): Strip => {
     let strip = Strip.parse(stripEntity);
@@ -72,5 +72,11 @@ export default class StripService {
         const stripImageOptionEntities = await StripImageOptionEntity.find();
 
         return stripImageOptionEntities.map((stripImageOptionEntity) => omit(stripImageOptionEntity, "id"));
+    }
+
+    static async getStripImageOptionByUid(uid: string): Promise<StripImageOption | undefined> {
+        const stripImageOptionEntity = await StripImageOptionEntity.findOne({ where: { uid } });
+
+        return stripImageOptionEntity ? omit(stripImageOptionEntity, "id") : undefined;
     }
 }

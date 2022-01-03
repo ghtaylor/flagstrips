@@ -12,7 +12,7 @@ import { cloneDeep, debounce, merge, omit, pick } from "lodash";
 import create from "zustand";
 import { combine } from "zustand/middleware";
 import { deleteStripByUid, patchFlagByUid, patchStripByUid, postStrip } from "../providers/axios";
-import { ApplyAllStyles } from "./util";
+import { ApplyAllStyles } from "./edit-strip";
 
 interface EditorLoadingState {
     createStrip: boolean;
@@ -70,7 +70,7 @@ export const useEditorStore = create(
                 );
             }
         },
-        updateStrip: (stripUid: string, stripPost: StripPost) => {
+        updateStrip: (uid: string, stripPost: StripPost) => {
             const { selectedFlag } = get();
 
             if (selectedFlag) {
@@ -83,9 +83,9 @@ export const useEditorStore = create(
                 )
                     throw new Error("Strip position provided is out of bounds.");
 
-                const stripIndex = getStripIndexByUid(selectedFlag.strips, stripUid);
+                const stripIndex = getStripIndexByUid(selectedFlag.strips, uid);
                 const strip = selectedFlag.strips[stripIndex];
-                // debouncedPatchStripByUid(stripUid, stripPost);
+                debouncedPatchStripByUid(uid, stripPost);
                 return set((state) =>
                     produce(state, (draftState) => {
                         // If position has been updated, other strips positions need to be changed.
@@ -245,6 +245,7 @@ export const useEditorStore = create(
                                         image: stripImagePost,
                                     })),
                                 };
+                                break;
                             }
                         }
 

@@ -1,4 +1,4 @@
-import { Strip, StripImage, StripPost, StripText } from "@flagstrips/common";
+import { Strip, StripImage, StripImageOption, StripPost, StripText } from "@flagstrips/common";
 import { z, ZodLiteral } from "zod";
 
 export const ApplyTextStylesChoice = z.union<
@@ -31,6 +31,7 @@ export const EditStripForm = z.object({
     textColor: StripText.shape.color,
     textFontSize: StripText.shape.fontSize,
     textFontWeight: StripText.shape.fontWeight,
+    imageOptionUid: StripImageOption.shape.uid,
     imageSize: StripImage.shape.size,
     imageColor: StripImage.shape.color,
     imagePosition: StripImage.shape.position,
@@ -43,6 +44,7 @@ export const getFormValuesByStrip = (strip: Strip): EditStripForm => ({
     textColor: strip.text.color,
     textFontSize: strip.text.fontSize,
     textFontWeight: strip.text.fontWeight,
+    imageOptionUid: strip.image.optionUid,
     imageSize: strip.image.size,
     imageColor: strip.image.color,
     imagePosition: strip.image.position,
@@ -59,5 +61,6 @@ export const getStripPostByFormValues = (formValues: EditStripForm): StripPost =
         size: formValues.imageSize,
         color: formValues.imageColor,
         position: formValues.imagePosition,
+        optionUid: formValues.imageOptionUid,
     },
 });

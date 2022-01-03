@@ -1,6 +1,11 @@
 import { z } from "zod";
-import { TimeStamped } from "./generic";
+import { UpperLower, TimeStamped } from "./generic";
 import { Strip, StripPost } from "./strip";
+
+export const FLAG_PADDING_UPPER_LOWER: UpperLower = {
+    upper: 64,
+    lower: 0,
+};
 
 export const FlagBorder = z.object({
     uid: z.string().optional(),

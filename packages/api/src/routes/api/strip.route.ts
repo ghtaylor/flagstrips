@@ -4,12 +4,14 @@ import StripController from "../../controllers/strip.controller";
 const router = Router();
 
 router.get("/image-options", StripController.getStripImageOptions);
+router.get("/image-options/:stripImageOptionUid", StripController.getStripImageOptionByUid);
 
-router.param("stripId", StripController.applyStripToRequestByIdParam);
+router.param("stripUid", StripController.applyStripToRequestByUidParam);
+router.param("stripImageOptionUid", StripController.applyStripImageOptionToRequestByUidParam);
 router.get("/", StripController.getStrips);
-router.get("/:stripId", StripController.getStripById);
+router.get("/:stripUid", StripController.getStripByUid);
 router.post("/", StripController.postStrip);
-router.patch("/:stripId", StripController.patchStrip);
-router.delete("/:stripId", StripController.deleteStrip);
+router.patch("/:stripUid", StripController.patchStrip);
+router.delete("/:stripUid", StripController.deleteStrip);
 
 export default router;

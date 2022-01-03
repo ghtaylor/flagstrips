@@ -105,3 +105,8 @@ export const getStripImageOptions = async (): Promise<StripImageOption[]> => {
     );
     return data.results;
 };
+
+export const getStripImageOptionByUid = async (uid: string): Promise<StripImageOption> => {
+    const { data }: AxiosResponse<StripImageOption> = await apiAxios.get(`/me/strips/image-options/${uid}`);
+    return data;
+};

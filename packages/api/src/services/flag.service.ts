@@ -6,7 +6,7 @@ import FlagBorderEntity from "../entities/Flag/FlagBorder";
 import FlagPaddingEntity from "../entities/Flag/FlagPadding";
 import StripService, { transformStripEntityToStrip } from "./strip.service";
 
-const relations = ["border", "padding", "strips", "strips.text", "strips.image", "strips.image.imageOption"];
+const relations = ["border", "padding", "strips", "strips.text", "strips.image"];
 
 export const transformFlagEntityToFlag = (flagEntity: FlagEntity): Flag => {
     let strips = flagEntity.strips!.map(transformStripEntityToStrip);

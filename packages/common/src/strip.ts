@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { UpperLower } from ".";
-import { TimeStamped } from "./generic";
+import { UpperLower, TimeStamped } from "./generic";
 
 export const STRIP_TEXT_FONT_SIZE_UPPER_LOWER: UpperLower = {
-    upper: 128,
+    upper: 64,
     lower: 4,
 };
 
@@ -34,13 +33,10 @@ export const StripImage = z.object({
     size: z.number(),
     color: z.string(),
     position: z.union([z.literal("left"), z.literal("right")]),
-    imageOption: StripImageOption,
+    optionUid: z.string(),
 });
 
-export const StripImagePost = z.intersection(
-    StripImage.omit({ uid: true, imageOption: true }).deepPartial(),
-    z.object({ imageOptionUid: z.string() }).deepPartial(),
-);
+export const StripImagePost = StripImage.omit({ uid: true }).deepPartial();
 
 export const Strip = TimeStamped.extend({
     uid: z.string(),

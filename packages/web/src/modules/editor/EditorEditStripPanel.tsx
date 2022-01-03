@@ -18,19 +18,20 @@ import {
     STRIP_TEXT_FONT_SIZE_UPPER_LOWER,
 } from "@flagstrips/common";
 import produce from "immer";
-import { clamp, isFinite } from "lodash";
+import { clamp, mapValues, ObjectIterator } from "lodash";
 import React, { useCallback, useEffect, useState } from "react";
+import { ValueOf } from "type-fest";
 import { useStripImageOptions } from "../providers/useQueryData";
 import ApplyStylesToAllButton, { ApplyStylesToAllCheckbox } from "../ui/ApplyStylesToAllButton";
 import ColorInput from "../ui/ColorInput";
-import { selectedStripSelector, useEditorStore } from "./useEditor";
 import {
     ApplyImageStylesChoice,
     ApplyTextStylesChoice,
     EditStripForm,
     getFormValuesByStrip,
     getStripPostByFormValues,
-} from "./util";
+} from "./edit-strip";
+import { selectedStripSelector, useEditorStore } from "./useEditor";
 
 export const fontWeights = StripText.shape.fontWeight.options.map(({ value }) => value);
 export const imagePositions = StripImage.shape.position.options.map(({ value }) => value);
@@ -55,12 +56,59 @@ const EditorEditStripPanel: React.FC = () => {
     //Used so that an update is not unnecessarily sent when the form values are first set.
     const [shouldUpdateStrip, setShouldUpdateStrip] = useState(false);
 
+    const clampFormValue = useCallback(
+        (key: keyof EditStripForm, value: ValueOf<EditStripForm>): ValueOf<EditStripForm> => {
+            switch (key) {
+                case "textFontSize":
+                    return clamp(
+                        value as number,
+                        STRIP_TEXT_FONT_SIZE_UPPER_LOWER.lower,
+                        STRIP_TEXT_FONT_SIZE_UPPER_LOWER.upper,
+                    );
+                case "imageSize":
+                    return clamp(
+                        value as number,
+                        STRIP_IMAGE_SIZE_UPPER_LOWER.lower,
+                        STRIP_IMAGE_SIZE_UPPER_LOWER.upper,
+                    );
+            }
+            return value;
+        },
+        [],
+    );
+
+    const clampFormValues = useCallback(
+        (formValues: EditStripForm): EditStripForm => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const iterate: ObjectIterator<EditStripForm, any> = (value, key) => {
+                if (typeof value === "object") return mapValues(value, iterate);
+                return clampFormValue(key as keyof EditStripForm, value);
+            };
+            return mapValues(formValues, iterate);
+        },
+        [formValues],
+    );
+
+    const handleBlur = useCallback(
+        (key: keyof EditStripForm) => {
+            if (formValues) {
+                const value = formValues[key];
+                if (typeof value === "number" && isNaN(value))
+                    setFormValues(
+                        produce((draftState) => {
+                            //This never cast is hacky but works. There is an issue with the compiler and handling key/value pairs.
+                            if (draftState) draftState[key] = clampFormValue(key, 0) as never;
+                        }),
+                    );
+            }
+        },
+        [formValues],
+    );
+
     const handleChangeValue = useCallback(<Key extends keyof EditStripForm>(key: Key, value: EditStripForm[Key]) => {
         setFormValues(
             produce((draftState) => {
-                if (draftState) {
-                    draftState[key] = value;
-                }
+                if (draftState) draftState[key] = value;
             }),
         );
     }, []);
@@ -69,30 +117,10 @@ const EditorEditStripPanel: React.FC = () => {
         (key: keyof EditStripForm, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
             const { value } = e.target;
 
-            if (isFinite(value)) {
-                handleChangeValue(key, Number(value));
-            } else {
-                handleChangeValue(key, value);
-            }
+            if (!isNaN(+value)) handleChangeValue(key, Number(value));
+            else handleChangeValue(key, value);
         },
         [],
-    );
-
-    const clampFormValues = useCallback(
-        (formValues: EditStripForm): EditStripForm => ({
-            ...formValues,
-            textFontSize: clamp(
-                formValues.textFontSize,
-                STRIP_TEXT_FONT_SIZE_UPPER_LOWER.lower,
-                STRIP_TEXT_FONT_SIZE_UPPER_LOWER.upper,
-            ),
-            imageSize: clamp(
-                formValues.imageSize,
-                STRIP_IMAGE_SIZE_UPPER_LOWER.lower,
-                STRIP_IMAGE_SIZE_UPPER_LOWER.upper,
-            ),
-        }),
-        [formValues],
     );
 
     useEffect(() => {
@@ -142,8 +170,9 @@ const EditorEditStripPanel: React.FC = () => {
                         size="xs"
                         min={STRIP_TEXT_FONT_SIZE_UPPER_LOWER.lower}
                         max={STRIP_TEXT_FONT_SIZE_UPPER_LOWER.upper}
-                        value={formValues.textFontSize ? formValues.textFontSize : ""}
+                        value={!isNaN(formValues.textFontSize) ? formValues.textFontSize : ""}
                         onChange={(_, value) => handleChangeValue("textFontSize", value)}
+                        onBlur={() => handleBlur("textFontSize")}
                     >
                         <NumberInputField />
                         <NumberInputStepper>
@@ -156,7 +185,11 @@ const EditorEditStripPanel: React.FC = () => {
                     <Select size="xs" />
                 </GridItem>
                 <GridItem>
-                    <Select size="xs" onChange={(e) => handleChangeEvent("textFontWeight", e)}>
+                    <Select
+                        size="xs"
+                        value={formValues.textFontWeight}
+                        onChange={(e) => handleChangeEvent("textFontWeight", e)}
+                    >
                         {fontWeights.map((fontWeight) => (
                             <option key={fontWeight} value={fontWeight}>
                                 {fontWeight}
@@ -182,8 +215,12 @@ const EditorEditStripPanel: React.FC = () => {
                     </Text>
                     <Grid templateColumns="64px auto 80px" gridGap={1} alignItems="end">
                         <GridItem colSpan={2}>
-                            <Select size="xs">
-                                {stripImageOptions.map(({ uid, name, uri }) => (
+                            <Select
+                                size="xs"
+                                value={formValues.imageOptionUid}
+                                onChange={(e) => handleChangeEvent("imageOptionUid", e)}
+                            >
+                                {stripImageOptions.map(({ uid, name }) => (
                                     <option key={uid} value={uid}>
                                         {name}
                                     </option>
@@ -202,8 +239,9 @@ const EditorEditStripPanel: React.FC = () => {
                                 size="xs"
                                 min={STRIP_IMAGE_SIZE_UPPER_LOWER.lower}
                                 max={STRIP_IMAGE_SIZE_UPPER_LOWER.upper}
-                                value={formValues.imageSize ? formValues.imageSize : ""}
+                                value={!isNaN(formValues.imageSize) ? formValues.imageSize : ""}
                                 onChange={(_, value) => handleChangeValue("imageSize", value)}
+                                onBlur={() => handleBlur("imageSize")}
                             >
                                 <NumberInputField />
                                 <NumberInputStepper>
@@ -213,7 +251,11 @@ const EditorEditStripPanel: React.FC = () => {
                             </NumberInput>
                         </GridItem>
                         <GridItem colSpan={2}>
-                            <Select size="xs" onChange={(e) => handleChangeEvent("imagePosition", e)}>
+                            <Select
+                                size="xs"
+                                value={formValues.imagePosition}
+                                onChange={(e) => handleChangeEvent("imagePosition", e)}
+                            >
                                 {imagePositions.map((imagePosition) => (
                                     <option key={imagePosition} value={imagePosition}>
                                         {imagePosition}
