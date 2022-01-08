@@ -26,7 +26,6 @@ import {
     HiOutlineLink,
 } from "react-icons/hi";
 import { MdBorderStyle, MdOutlineRoundedCorner } from "react-icons/md";
-import { BsBorderWidth } from "react-icons/bs";
 import { ValueOf } from "type-fest";
 import ColorInput from "../ui/ColorInput";
 import {

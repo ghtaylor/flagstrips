@@ -1,5 +1,3 @@
--- TODO: Add handler for position 0 strip added. (Currently defaults to null).
-
 CREATE EXTENSION IF NOT EXISTS "pg_hashids";
 
 CREATE TABLE IF NOT EXISTS trigger_execution (
@@ -95,6 +93,7 @@ CREATE TABLE IF NOT EXISTS strip_image (
     image_option_uid text NOT NULL DEFAULT default_strip_image_option_uid() REFERENCES strip_image_option (uid),
     size integer NOT NULL DEFAULT 32,
     color text NOT NULL DEFAULT '#000000FF',
+    gap_to_text integer NOT NULL DEFAULT 4,
     position text NOT NULL DEFAULT 'left',
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,

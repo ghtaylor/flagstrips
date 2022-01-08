@@ -16,6 +16,9 @@ export default class StripImageEntity extends BaseEntity {
     color: string;
 
     @Column()
+    gapToText: number;
+
+    @Column()
     position: string;
 
     @Column()

@@ -2,6 +2,7 @@ import {
     Grid,
     GridItem,
     HStack,
+    Icon,
     Input,
     NumberDecrementStepper,
     NumberIncrementStepper,
@@ -14,12 +15,14 @@ import {
 import {
     StripImage,
     StripText,
+    STRIP_IMAGE_GAP_TO_TEXT_UPPER_LOWER,
     STRIP_IMAGE_SIZE_UPPER_LOWER,
     STRIP_TEXT_FONT_SIZE_UPPER_LOWER,
 } from "@flagstrips/common";
 import produce from "immer";
 import { clamp, mapValues, ObjectIterator } from "lodash";
 import React, { useCallback, useEffect, useState } from "react";
+import { AiOutlineColumnWidth } from "react-icons/ai";
 import { ValueOf } from "type-fest";
 import { useStripImageOptions } from "../providers/useQueryData";
 import ApplyStylesToAllButton, { ApplyStylesToAllCheckbox } from "../ui/ApplyStylesToAllButton";
@@ -45,6 +48,7 @@ export const applyImageStylesCheckboxes: ApplyStylesToAllCheckbox<ApplyImageStyl
     { text: "color", value: "color" },
     { text: "size", value: "size" },
     { text: "position", value: "position" },
+    { text: "gap to text", value: "gapToText" },
 ];
 
 const EditorEditStripPanel: React.FC = () => {
@@ -70,6 +74,12 @@ const EditorEditStripPanel: React.FC = () => {
                         value as number,
                         STRIP_IMAGE_SIZE_UPPER_LOWER.lower,
                         STRIP_IMAGE_SIZE_UPPER_LOWER.upper,
+                    );
+                case "imageGapToText":
+                    return clamp(
+                        value as number,
+                        STRIP_IMAGE_GAP_TO_TEXT_UPPER_LOWER.lower,
+                        STRIP_IMAGE_GAP_TO_TEXT_UPPER_LOWER.upper,
                     );
             }
             return value;
@@ -249,7 +259,7 @@ const EditorEditStripPanel: React.FC = () => {
                                 </NumberInputStepper>
                             </NumberInput>
                         </GridItem>
-                        <GridItem colSpan={2}>
+                        <GridItem>
                             <Select
                                 size="xs"
                                 value={formValues.imagePosition}
@@ -261,6 +271,23 @@ const EditorEditStripPanel: React.FC = () => {
                                     </option>
                                 ))}
                             </Select>
+                        </GridItem>
+                        <GridItem display="flex" flexDirection="row" alignItems="center">
+                            <Icon as={AiOutlineColumnWidth} marginX={1} />
+                            <NumberInput
+                                size="xs"
+                                min={STRIP_IMAGE_GAP_TO_TEXT_UPPER_LOWER.lower}
+                                max={STRIP_IMAGE_GAP_TO_TEXT_UPPER_LOWER.upper}
+                                value={!isNaN(formValues.imageGapToText) ? formValues.imageGapToText : ""}
+                                onChange={(_, value) => handleChangeValue("imageGapToText", value)}
+                                onBlur={() => handleBlur("imageGapToText")}
+                            >
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                </NumberInputStepper>
+                            </NumberInput>
                         </GridItem>
                     </Grid>
                     <ApplyStylesToAllButton
