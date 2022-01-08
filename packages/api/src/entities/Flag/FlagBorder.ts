@@ -23,16 +23,7 @@ export default class FlagBorderEntity extends BaseEntity {
     color: string;
 
     @Column()
-    topLeft: number;
-
-    @Column()
-    topRight: number;
-
-    @Column()
-    bottomLeft: number;
-
-    @Column()
-    bottomRight: number;
+    radius: number;
 
     @CreateDateColumn()
     created: Date;

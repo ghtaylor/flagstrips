@@ -11,7 +11,7 @@ interface StripProps {
 }
 
 const StripComponent: ComponentWithAs<"div", FlexProps & StripProps> = ({ strip, ...props }) => {
-    const { data: imageOption } = useStripImageOption(strip?.image.optionUid);
+    const { data: imageOption } = useStripImageOption(strip.image.optionUid);
     return (
         <Flex
             backgroundColor={strip.backgroundColor}

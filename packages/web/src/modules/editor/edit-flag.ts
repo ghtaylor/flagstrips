@@ -1,13 +1,14 @@
-import { Flag, FlagPadding, FlagPost } from "@flagstrips/common";
+import { Flag, FlagPadding, FlagBorder, FlagPost } from "@flagstrips/common";
 import { z } from "zod";
 
-//If value in object is set, then value proportions are being constrained. Value is ratio.
-export const ConstrainProportionsFlagPadding = z.object({
-    x: z.optional(z.number()),
-    y: z.optional(z.number()),
+// If constrain is enabled the value is the ratio by which to constrain,
+// if constrain is disabled the value is undefined.
+export const ConstrainProportionsFlag = z.object({
+    paddingX: z.optional(z.number()),
+    paddingY: z.optional(z.number()),
 });
 
-export type ConstrainProportionsFlagPadding = z.infer<typeof ConstrainProportionsFlagPadding>;
+export type ConstrainProportionsFlag = z.infer<typeof ConstrainProportionsFlag>;
 
 export const EditFlagFormPadding = z.object({
     paddingTop: FlagPadding.shape.top,
@@ -18,19 +19,32 @@ export const EditFlagFormPadding = z.object({
 
 export type EditFlagFormPadding = z.infer<typeof EditFlagFormPadding>;
 
-export const EditFlagForm = EditFlagFormPadding;
+export const EditFlagFormBorder = z.object({
+    borderRadius: FlagBorder.shape.radius,
+    borderColor: FlagBorder.shape.color,
+    borderWidth: FlagBorder.shape.width,
+});
+
+export type EditFlagFormBorder = z.infer<typeof EditFlagFormBorder>;
+
+export const EditFlagForm = z.intersection(EditFlagFormPadding, EditFlagFormBorder);
 
 export type EditFlagForm = z.infer<typeof EditFlagForm>;
 
 export const isEditFlagFormPaddingKey = (key: string): key is keyof EditFlagFormPadding =>
     Object.keys(EditFlagFormPadding.shape).some((paddingKey) => paddingKey === key);
 
-export const getFormValuesByFlag = (flag: Flag): EditFlagForm => ({
-    paddingTop: flag.padding.top,
-    paddingBottom: flag.padding.bottom,
-    paddingLeft: flag.padding.left,
-    paddingRight: flag.padding.right,
-});
+export const getFormValuesByFlag = (flag: Flag): EditFlagForm => {
+    return {
+        paddingTop: flag.padding.top,
+        paddingBottom: flag.padding.bottom,
+        paddingLeft: flag.padding.left,
+        paddingRight: flag.padding.right,
+        borderRadius: flag.border.radius,
+        borderColor: flag.border.color,
+        borderWidth: flag.border.width,
+    };
+};
 
 export const getFlagPostByFormValues = (formValues: EditFlagForm): FlagPost => ({
     padding: {
@@ -38,5 +52,10 @@ export const getFlagPostByFormValues = (formValues: EditFlagForm): FlagPost => (
         bottom: formValues.paddingBottom,
         left: formValues.paddingLeft,
         right: formValues.paddingRight,
+    },
+    border: {
+        color: formValues.borderColor,
+        radius: formValues.borderRadius,
+        width: formValues.borderWidth,
     },
 });

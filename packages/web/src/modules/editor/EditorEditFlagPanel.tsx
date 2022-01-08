@@ -10,20 +10,27 @@ import {
     NumberInputStepper,
     Text,
 } from "@chakra-ui/react";
-import { FLAG_PADDING_UPPER_LOWER } from "@flagstrips/common";
+import {
+    FLAG_BORDER_RADIUS_UPPER_LOWER,
+    FLAG_BORDER_WIDTH_UPPER_LOWER,
+    FLAG_PADDING_UPPER_LOWER,
+} from "@flagstrips/common";
 import produce from "immer";
 import { clamp, mapValues, ObjectIterator } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 import {
-    HiOutlineArrowNarrowDown,
-    HiOutlineArrowNarrowLeft,
-    HiOutlineArrowNarrowRight,
-    HiOutlineArrowNarrowUp,
+    HiOutlineArrowSmDown,
+    HiOutlineArrowSmLeft,
+    HiOutlineArrowSmRight,
+    HiOutlineArrowSmUp,
     HiOutlineLink,
 } from "react-icons/hi";
+import { MdBorderStyle, MdOutlineRoundedCorner } from "react-icons/md";
+import { BsBorderWidth } from "react-icons/bs";
 import { ValueOf } from "type-fest";
+import ColorInput from "../ui/ColorInput";
 import {
-    ConstrainProportionsFlagPadding,
+    ConstrainProportionsFlag,
     EditFlagForm,
     getFlagPostByFormValues,
     getFormValuesByFlag,
@@ -38,12 +45,27 @@ const EditorEditFlagPanel: React.FC = () => {
     //Used so that an update is not unnecessarily sent when the form values are first set.
     const [shouldUpdateFlag, setShouldUpdateFlag] = useState(false);
 
-    const [constrainProportions, setConstrainProportions] = useState<ConstrainProportionsFlagPadding>({});
+    const [constrainProportions, setConstrainProportions] = useState<ConstrainProportionsFlag>({});
 
     const clampFormValue = useCallback(
         (key: keyof EditFlagForm, value: ValueOf<EditFlagForm>): ValueOf<EditFlagForm> => {
             if (isEditFlagFormPaddingKey(key))
-                return clamp(value, FLAG_PADDING_UPPER_LOWER.lower, FLAG_PADDING_UPPER_LOWER.upper);
+                return clamp(value as number, FLAG_PADDING_UPPER_LOWER.lower, FLAG_PADDING_UPPER_LOWER.upper);
+
+            switch (key) {
+                case "borderRadius":
+                    return clamp(
+                        value as number,
+                        FLAG_BORDER_RADIUS_UPPER_LOWER.lower,
+                        FLAG_BORDER_RADIUS_UPPER_LOWER.upper,
+                    );
+                case "borderWidth":
+                    return clamp(
+                        value as number,
+                        FLAG_BORDER_WIDTH_UPPER_LOWER.lower,
+                        FLAG_BORDER_WIDTH_UPPER_LOWER.upper,
+                    );
+            }
             return value;
         },
         [],
@@ -62,39 +84,42 @@ const EditorEditFlagPanel: React.FC = () => {
     );
 
     const handleBlur = useCallback(
-        (key: keyof EditFlagForm) => {
-            if (isEditFlagFormPaddingKey(key))
-                setFormValues(
-                    produce((draftState) => {
-                        if (draftState) {
-                            if (isNaN(draftState[key])) {
-                                draftState[key] = 0;
+        (key: keyof EditFlagForm) =>
+            setFormValues(
+                produce((draftState) => {
+                    if (draftState) {
+                        const value = draftState[key];
+                        if (typeof value === "number" && isNaN(value)) {
+                            // This never cast is hacky but works. There is an issue with the compiler and handling key/value pairs.
+                            const clampedValue = clampFormValue(key, 0) as never;
+                            draftState[key] = clampedValue;
 
-                                if (constrainProportions.x) {
+                            if (isEditFlagFormPaddingKey(key)) {
+                                if (constrainProportions.paddingX) {
                                     switch (key) {
                                         case "paddingLeft":
-                                            draftState.paddingRight = 0;
+                                            draftState.paddingRight = clampedValue;
                                             break;
                                         case "paddingRight":
-                                            draftState.paddingLeft = 0;
+                                            draftState.paddingLeft = clampedValue;
                                             break;
                                     }
                                 }
-                                if (constrainProportions.y) {
+                                if (constrainProportions.paddingY) {
                                     switch (key) {
                                         case "paddingTop":
-                                            draftState.paddingBottom = 0;
+                                            draftState.paddingBottom = clampedValue;
                                             break;
                                         case "paddingBottom":
-                                            draftState.paddingTop = 0;
+                                            draftState.paddingTop = clampedValue;
                                             break;
                                     }
                                 }
                             }
                         }
-                    }),
-                );
-        },
+                    }
+                }),
+            ),
         [constrainProportions],
     );
 
@@ -105,35 +130,35 @@ const EditorEditFlagPanel: React.FC = () => {
                     if (draftState) {
                         draftState[key] = value;
 
-                        if (constrainProportions.x) {
+                        if (constrainProportions.paddingX) {
                             switch (key) {
                                 case "paddingLeft":
                                     draftState.paddingRight =
-                                        constrainProportions.x === 1
+                                        constrainProportions.paddingX === 1
                                             ? draftState.paddingLeft
-                                            : Math.ceil(value * constrainProportions.x);
+                                            : Math.ceil((value as number) * constrainProportions.paddingX);
                                     break;
                                 case "paddingRight":
                                     draftState.paddingLeft =
-                                        constrainProportions.x === 1
+                                        constrainProportions.paddingX === 1
                                             ? draftState.paddingRight
-                                            : Math.ceil(value * constrainProportions.x);
+                                            : Math.ceil((value as number) * constrainProportions.paddingX);
                                     break;
                             }
                         }
-                        if (constrainProportions.y) {
+                        if (constrainProportions.paddingY) {
                             switch (key) {
                                 case "paddingTop":
                                     draftState.paddingBottom =
-                                        constrainProportions.y === 1
+                                        constrainProportions.paddingY === 1
                                             ? draftState.paddingTop
-                                            : Math.ceil(value * constrainProportions.y);
+                                            : Math.ceil((value as number) * constrainProportions.paddingY);
                                     break;
                                 case "paddingBottom":
                                     draftState.paddingTop =
-                                        constrainProportions.y === 1
+                                        constrainProportions.paddingY === 1
                                             ? draftState.paddingBottom
-                                            : Math.ceil(value * constrainProportions.y);
+                                            : Math.ceil((value as number) * constrainProportions.paddingY);
                                     break;
                             }
                         }
@@ -156,31 +181,41 @@ const EditorEditFlagPanel: React.FC = () => {
         [],
     );
 
+    const sanitizePaddingRatio = useCallback(
+        (ratio: number): number => (ratio === Infinity || isNaN(ratio) ? 1 : ratio),
+        [],
+    );
+
     const onConstrainProportions = useCallback(
-        (axis: "x" | "y") => {
+        (constrain: keyof ConstrainProportionsFlag) => {
             setConstrainProportions(
                 produce((draftState) => {
-                    if (!draftState[axis] && formValues) {
-                        const { paddingTop, paddingBottom, paddingLeft, paddingRight } = formValues;
-                        let ratio: number;
-                        switch (axis) {
-                            case "x":
-                                ratio =
+                    if (!draftState[constrain] && formValues) {
+                        switch (constrain) {
+                            case "paddingX": {
+                                const { paddingLeft, paddingRight } = formValues;
+                                const ratio =
                                     paddingLeft > paddingRight
                                         ? paddingLeft / paddingRight
                                         : paddingRight / paddingLeft;
-                                break;
 
-                            case "y":
-                                ratio =
+                                draftState[constrain] = sanitizePaddingRatio(ratio);
+                                break;
+                            }
+                            case "paddingY": {
+                                const { paddingTop, paddingBottom } = formValues;
+                                const ratio =
                                     paddingTop > paddingBottom
                                         ? paddingTop / paddingBottom
                                         : paddingBottom / paddingTop;
+
+                                draftState[constrain] = sanitizePaddingRatio(ratio);
                                 break;
+                            }
                         }
-                        if (ratio === Infinity || isNaN(ratio)) ratio = 1;
-                        draftState[axis] = ratio;
-                    } else delete draftState[axis];
+                    } else if (draftState[constrain]) {
+                        draftState[constrain] = undefined;
+                    }
                 }),
             );
         },
@@ -211,9 +246,9 @@ const EditorEditFlagPanel: React.FC = () => {
             <Text textStyle="editorHeader" marginBottom={1}>
                 padding
             </Text>
-            <Grid templateColumns="auto auto 1fr" rowGap={1} columnGap={2} alignItems="end">
+            <Grid templateColumns="auto auto 1fr" rowGap={1} columnGap={2} alignItems="end" marginBottom={3}>
                 <GridItem display="flex" flexDirection="row" alignItems="center">
-                    <Icon as={HiOutlineArrowNarrowUp} marginEnd={2} />
+                    <Icon as={HiOutlineArrowSmUp} marginEnd={1} />
                     <NumberInput
                         size="xs"
                         min={FLAG_PADDING_UPPER_LOWER.lower}
@@ -230,7 +265,7 @@ const EditorEditFlagPanel: React.FC = () => {
                     </NumberInput>
                 </GridItem>
                 <GridItem display="flex" flexDirection="row" alignItems="center">
-                    <Icon as={HiOutlineArrowNarrowDown} marginEnd={2} />
+                    <Icon as={HiOutlineArrowSmDown} marginEnd={1} />
                     <NumberInput
                         size="xs"
                         value={!isNaN(formValues.paddingBottom) ? formValues.paddingBottom : ""}
@@ -250,12 +285,12 @@ const EditorEditFlagPanel: React.FC = () => {
                         aria-label="Constrain proportions"
                         icon={<HiOutlineLink />}
                         variant="ghost"
-                        isActive={!!constrainProportions.y}
-                        onClick={() => onConstrainProportions("y")}
+                        isActive={!!constrainProportions.paddingY}
+                        onClick={() => onConstrainProportions("paddingY")}
                     />
                 </GridItem>
                 <GridItem display="flex" flexDirection="row" alignItems="center">
-                    <Icon as={HiOutlineArrowNarrowLeft} marginEnd={2} />
+                    <Icon as={HiOutlineArrowSmLeft} marginEnd={1} />
                     <NumberInput
                         size="xs"
                         value={!isNaN(formValues.paddingLeft) ? formValues.paddingLeft : ""}
@@ -270,7 +305,7 @@ const EditorEditFlagPanel: React.FC = () => {
                     </NumberInput>
                 </GridItem>
                 <GridItem display="flex" flexDirection="row" alignItems="center">
-                    <Icon as={HiOutlineArrowNarrowRight} marginEnd={2} />
+                    <Icon as={HiOutlineArrowSmRight} marginEnd={1} />
                     <NumberInput
                         size="xs"
                         value={!isNaN(formValues.paddingRight) ? formValues.paddingRight : ""}
@@ -290,8 +325,54 @@ const EditorEditFlagPanel: React.FC = () => {
                         aria-label="Constrain proportions"
                         icon={<HiOutlineLink />}
                         variant="ghost"
-                        isActive={!!constrainProportions.x}
-                        onClick={() => onConstrainProportions("x")}
+                        isActive={!!constrainProportions.paddingX}
+                        onClick={() => onConstrainProportions("paddingX")}
+                    />
+                </GridItem>
+            </Grid>
+            <Text textStyle="editorHeader" marginBottom={1}>
+                border
+            </Text>
+            <Grid templateColumns="1fr 1fr 1fr" gridGap={1} alignItems="end" marginBottom={3}>
+                <GridItem display="flex" flexDirection="row" alignItems="center">
+                    <Icon as={MdBorderStyle} marginEnd={1} />
+                    <NumberInput
+                        size="xs"
+                        min={FLAG_BORDER_WIDTH_UPPER_LOWER.lower}
+                        max={FLAG_BORDER_WIDTH_UPPER_LOWER.upper}
+                        value={!isNaN(formValues.borderWidth) ? formValues.borderWidth : ""}
+                        onChange={(_, value) => handleChangeValue("borderWidth", value)}
+                        onBlur={() => handleBlur("borderWidth")}
+                    >
+                        <NumberInputField />
+                        <NumberInputStepper>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                        </NumberInputStepper>
+                    </NumberInput>
+                </GridItem>
+                <GridItem display="flex" flexDirection="row" alignItems="center">
+                    <Icon as={MdOutlineRoundedCorner} transform="rotate(270deg)" marginX={1} />
+                    <NumberInput
+                        size="xs"
+                        min={FLAG_BORDER_RADIUS_UPPER_LOWER.lower}
+                        max={FLAG_BORDER_RADIUS_UPPER_LOWER.upper}
+                        value={!isNaN(formValues.borderRadius) ? formValues.borderRadius : ""}
+                        onChange={(_, value) => handleChangeValue("borderRadius", value)}
+                        onBlur={() => handleBlur("borderRadius")}
+                    >
+                        <NumberInputField />
+                        <NumberInputStepper>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                        </NumberInputStepper>
+                    </NumberInput>
+                </GridItem>
+                <GridItem>
+                    <ColorInput
+                        size="xs"
+                        value={formValues.borderColor}
+                        onHexChange={(hex) => handleChangeValue("borderColor", hex)}
                     />
                 </GridItem>
             </Grid>

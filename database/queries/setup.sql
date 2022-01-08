@@ -57,10 +57,7 @@ CREATE TABLE IF NOT EXISTS flag_border (
     flag_uid text NOT NULL UNIQUE REFERENCES flag (uid) ON DELETE CASCADE,
     width integer NOT NULL DEFAULT 0,
     color text NOT NULL DEFAULT '#000000ff',
-    top_left integer NOT NULL DEFAULT 8,
-    top_right integer NOT NULL DEFAULT 8,
-    bottom_left integer NOT NULL DEFAULT 8,
-    bottom_right integer NOT NULL DEFAULT 8,
+    radius integer NOT NULL DEFAULT 8,
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     modified timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PRIMARY KEY (id, uid)

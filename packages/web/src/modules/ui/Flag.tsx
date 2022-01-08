@@ -14,7 +14,13 @@ const FlagComponent: ComponentWithAs<"div", SimpleGridProps & FlagProps> = ({
     ...props
 }) => {
     return (
-        <SimpleGrid {...props}>
+        <SimpleGrid
+            {...props}
+            overflow="hidden"
+            borderColor={flag.border.color}
+            borderWidth={flag.border.width}
+            borderRadius={flag.border.radius}
+        >
             {flag.strips.map((strip, index) => (
                 <StripComponent
                     as={GridItem}

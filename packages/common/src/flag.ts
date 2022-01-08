@@ -7,14 +7,21 @@ export const FLAG_PADDING_UPPER_LOWER: UpperLower = {
     lower: 0,
 };
 
+export const FLAG_BORDER_RADIUS_UPPER_LOWER: UpperLower = {
+    upper: 32,
+    lower: 0,
+};
+
+export const FLAG_BORDER_WIDTH_UPPER_LOWER: UpperLower = {
+    upper: 32,
+    lower: 0,
+};
+
 export const FlagBorder = z.object({
     uid: z.string().optional(),
     width: z.number(),
     color: z.string(),
-    topLeft: z.number(),
-    topRight: z.number(),
-    bottomLeft: z.number(),
-    bottomRight: z.number(),
+    radius: z.number(),
 });
 
 export const FlagBorderPost = FlagBorder.omit({ uid: true }).deepPartial();

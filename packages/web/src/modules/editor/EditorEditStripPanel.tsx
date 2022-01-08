@@ -90,19 +90,18 @@ const EditorEditStripPanel: React.FC = () => {
     );
 
     const handleBlur = useCallback(
-        (key: keyof EditStripForm) => {
-            if (formValues) {
-                const value = formValues[key];
-                if (typeof value === "number" && isNaN(value))
-                    setFormValues(
-                        produce((draftState) => {
-                            //This never cast is hacky but works. There is an issue with the compiler and handling key/value pairs.
-                            if (draftState) draftState[key] = clampFormValue(key, 0) as never;
-                        }),
-                    );
-            }
-        },
-        [formValues],
+        (key: keyof EditStripForm) =>
+            setFormValues(
+                produce((draftState) => {
+                    if (draftState) {
+                        const value = draftState[key];
+                        if (typeof value === "number" && isNaN(value))
+                            // This never cast is hacky but works. There is an issue with the compiler and handling key/value pairs.
+                            draftState[key] = clampFormValue(key, 0) as never;
+                    }
+                }),
+            ),
+        [],
     );
 
     const handleChangeValue = useCallback(<Key extends keyof EditStripForm>(key: Key, value: EditStripForm[Key]) => {

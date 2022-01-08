@@ -27,7 +27,7 @@ const EditorPage: React.FC = () => {
             <MainLayout navbarSize="sm">
                 <Grid
                     height="100%"
-                    templateColumns="1fr 3fr 1fr"
+                    templateColumns="320px auto 320px"
                     templateRows="auto 140px"
                     borderColor="gray.200"
                     borderTopWidth={1}
