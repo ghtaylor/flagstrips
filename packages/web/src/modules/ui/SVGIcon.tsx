@@ -17,7 +17,7 @@ const SVGIcon: ComponentWithAs<"svg", IconProps & SVGProps> = ({ src, ...props }
 
     useEffect(() => {
         retrieveSvg();
-    }, []);
+    }, [src]);
 
     return svg ? (
         <>
