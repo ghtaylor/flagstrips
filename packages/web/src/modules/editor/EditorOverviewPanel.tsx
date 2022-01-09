@@ -78,7 +78,7 @@ const EditorOverviewPanel: React.FC = () => {
                             size="lg"
                             marginBottom={2}
                             boxShadow="xl"
-                            variant={selectedStrip?.position === strip.position ? "selected" : "base"}
+                            isActive={selectedStrip?.position === strip.position}
                             onClick={() => setSelectedStripUid(strip.uid)}
                             onDeleteClick={() => deleteStrip(strip.uid)}
                         />

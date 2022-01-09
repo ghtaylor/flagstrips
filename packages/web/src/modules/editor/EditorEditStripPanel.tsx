@@ -27,6 +27,7 @@ import { ValueOf } from "type-fest";
 import { useStripImageOptions } from "../providers/useQueryData";
 import ApplyStylesToAllButton, { ApplyStylesToAllCheckbox } from "../ui/ApplyStylesToAllButton";
 import ColorInput from "../ui/ColorInput";
+import SelectImage from "../ui/SelectImage";
 import {
     ApplyImageStylesChoice,
     ApplyTextStylesChoice,
@@ -224,17 +225,17 @@ const EditorEditStripPanel: React.FC = () => {
                     </Text>
                     <Grid templateColumns="64px auto 80px" gridGap={1} alignItems="end">
                         <GridItem colSpan={2}>
-                            <Select
+                            <SelectImage
+                                options={stripImageOptions.map(({ uid, uri, name }) => ({
+                                    id: uid,
+                                    value: name,
+                                    imageUrl: uri,
+                                    "aria-label": name,
+                                }))}
+                                selectedOption={formValues.imageOptionUid}
+                                onOptionSelect={(option) => handleChangeValue("imageOptionUid", option.id)}
                                 size="xs"
-                                value={formValues.imageOptionUid}
-                                onChange={(e) => handleChangeEvent("imageOptionUid", e)}
-                            >
-                                {stripImageOptions.map(({ uid, name }) => (
-                                    <option key={uid} value={uid}>
-                                        {name}
-                                    </option>
-                                ))}
-                            </Select>
+                            />
                         </GridItem>
                         <GridItem colSpan={1}>
                             <ColorInput

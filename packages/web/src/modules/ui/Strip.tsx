@@ -1,9 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import { ComponentWithAs, FlexProps, Grid, GridItem, Text } from "@chakra-ui/react";
-import { css } from "@emotion/react";
 import { Strip } from "@flagstrips/common";
-import { ReactSVG } from "react-svg";
 import { useStripImageOption } from "../providers/useQueryData";
+import SVGIcon from "./SVGIcon";
 
 interface StripProps {
     strip: Strip;
@@ -23,15 +22,11 @@ const StripComponent: ComponentWithAs<"div", FlexProps & StripProps> = ({ strip,
         >
             {imageOption && (
                 <GridItem order={strip.image.position === "left" ? 1 : 2}>
-                    <ReactSVG
+                    <SVGIcon
                         src={imageOption.uri}
-                        css={css`
-                            svg {
-                                fill: ${strip.image.color};
-                                width: ${strip.image.size}px;
-                                height: ${strip.image.size}px;
-                            }
-                        `}
+                        fill={strip.image.color}
+                        width={`${strip.image.size}px`}
+                        height={`${strip.image.size}px`}
                     />
                 </GridItem>
             )}
