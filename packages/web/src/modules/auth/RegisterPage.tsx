@@ -32,7 +32,7 @@ const Register = (): JSX.Element => (
                         <InputGroup marginTop={3}>
                             <Input placeholder="email" />
                             <InputRightAddon>required</InputRightAddon>
-                        </InputGroup>{" "}
+                        </InputGroup>
                         <InputGroup marginTop={3}>
                             <Input placeholder="password" />
                             <InputRightAddon>required</InputRightAddon>
