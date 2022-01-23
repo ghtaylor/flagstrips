@@ -20,7 +20,7 @@ import {
     STRIP_TEXT_FONT_SIZE_UPPER_LOWER,
 } from "@flagstrips/common";
 import produce from "immer";
-import { clamp, mapValues, ObjectIterator } from "lodash";
+import { clamp, isFinite, mapValues, ObjectIterator } from "lodash";
 import React, { useCallback, useEffect, useState } from "react";
 import { AiOutlineColumnWidth } from "react-icons/ai";
 import { ValueOf } from "type-fest";
@@ -127,7 +127,7 @@ const EditorEditStripPanel: React.FC = () => {
         (key: keyof EditStripForm, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
             const { value } = e.target;
 
-            if (!isNaN(+value)) handleChangeValue(key, Number(value));
+            if (isFinite(value)) handleChangeValue(key, Number(value));
             else handleChangeValue(key, value);
         },
         [],
