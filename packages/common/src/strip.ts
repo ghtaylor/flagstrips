@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AnimationEasingOption, AnimationPresetOption } from ".";
 import { UpperLower, TimeStamped } from "./generic";
 
 export const STRIP_TEXT_FONT_SIZE_UPPER_LOWER: UpperLower = {
@@ -44,12 +45,22 @@ export const StripImage = z.object({
 
 export const StripImagePost = StripImage.omit({ uid: true }).deepPartial();
 
+export const StripAnimation = z.object({
+    uid: z.string().optional(),
+    easing: AnimationEasingOption,
+    preset: AnimationPresetOption,
+    duration: z.number(),
+});
+
 export const Strip = TimeStamped.extend({
     uid: z.string(),
     position: z.number(),
     backgroundColor: z.string(),
     text: StripText,
     image: StripImage,
+    inAnimation: StripAnimation,
+    staticAnimation: StripAnimation,
+    outAnimation: StripAnimation,
 });
 
 export const StripPost = z.intersection(

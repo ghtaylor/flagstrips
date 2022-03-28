@@ -12,7 +12,7 @@ backend/database/data
 packages/client/web_old
 
 # secrets
-.env
+.env*
 
 # debug
 npm-debug.log*

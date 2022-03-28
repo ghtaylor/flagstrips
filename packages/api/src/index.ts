@@ -1,4 +1,5 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import "reflect-metadata";
 
 import express from "express";
@@ -8,7 +9,7 @@ import cookieParser from "cookie-parser";
 import router from "./routes";
 import errorHandler from "./middleware/error-handler";
 import logger from "./middleware/logger";
-import createDBConnection from "./providers/database";
+import connection from "./providers/database";
 
 const { PORT } = process.env;
 
@@ -19,10 +20,11 @@ if (!PORT) {
 
 (async () => {
     try {
-        await createDBConnection();
-        console.log("Successfully connected to database.");
+        const conn = await connection.create();
+        console.log("Successfully connected to database.", conn.name);
     } catch (error) {
         console.error(`An error occurred connecting to database: ${error}`);
+        process.exit(1);
     }
 })();
 
@@ -39,3 +41,5 @@ app.use(errorHandler);
 app.listen(PORT, () => {
     console.log(`Listening at ${PORT}`);
 });
+
+export default app;

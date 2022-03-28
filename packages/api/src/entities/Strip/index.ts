@@ -1,4 +1,3 @@
-import { StripText } from "@flagstrips/common";
 import {
     BaseEntity,
     Column,
@@ -11,6 +10,7 @@ import {
 } from "typeorm";
 import FlagEntity from "../Flag";
 import UserEntity from "../User";
+import { InStripAnimationEntity, OutStripAnimationEntity, StaticStripAnimationEntity } from "./StripAnimation";
 import StripImageEntity from "./StripImage";
 import StripTextEntity from "./StripText";
 
@@ -40,7 +40,16 @@ export default class StripEntity extends BaseEntity {
     image: StripImageEntity;
 
     @OneToOne(() => StripTextEntity, (stripText) => stripText.strip)
-    text: StripText;
+    text: StripTextEntity;
+
+    @OneToOne(() => InStripAnimationEntity, (inStripAnimation) => inStripAnimation.strip)
+    inAnimation: InStripAnimationEntity;
+
+    @OneToOne(() => StaticStripAnimationEntity, (staticStripAnimation) => staticStripAnimation.strip)
+    staticAnimation: StaticStripAnimationEntity;
+
+    @OneToOne(() => OutStripAnimationEntity, (outStripAnimation) => outStripAnimation.strip)
+    outAnimation: OutStripAnimationEntity;
 
     @Column()
     backgroundColor: string;

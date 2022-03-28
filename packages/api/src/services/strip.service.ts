@@ -5,7 +5,17 @@ import StripImageEntity from "../entities/Strip/StripImage";
 import StripImageOptionEntity from "../entities/Strip/StripImageOption";
 import StripTextEntity from "../entities/Strip/StripText";
 
-const relations = ["flag", "text", "image"];
+const relations = [
+    "flag",
+    "text",
+    "image",
+    "inAnimation",
+    "inAnimation.preset",
+    "staticAnimation",
+    "staticAnimation.preset",
+    "outAnimation",
+    "outAnimation.preset",
+];
 
 export const transformStripEntityToStrip = (stripEntity: StripEntity): Strip => {
     let strip = Strip.parse(stripEntity);

@@ -1,3 +1,4 @@
+export * from "./animation";
 export * from "./flag";
 export * from "./strip";
 export * from "./user";
